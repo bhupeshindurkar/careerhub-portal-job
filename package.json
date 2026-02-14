@@ -1,0 +1,31 @@
+{
+  "name": "careerhub-pro",
+  "version": "1.0.0",
+  "description": "Professional Job Portal - Developed by BHUPESH INDURKAR",
+  "main": "test-production.js",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "test-production": "node test-production.js",
+    "start-backend": "cd backend && node testServer.js",
+    "start-frontend": "cd frontend && npm start",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "production": "npm run build && npm run test-production"
+  },
+  "keywords": [
+    "job-portal",
+    "react",
+    "nodejs",
+    "express",
+    "mongodb",
+    "mern-stack"
+  ],
+  "author": "BHUPESH INDURKAR - Full Stack Developer",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
