@@ -41,12 +41,16 @@ exports.register = async (req, res) => {
 
     const user = await User.create(userData);
 
-    // Send welcome email
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to CareerHub Pro',
-      text: `Hi ${user.name}, Welcome to CareerHub Pro! Your account has been created successfully.`
-    });
+    // Send welcome email (optional - skip if email service not configured)
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to CareerHub Pro',
+        text: `Hi ${user.name}, Welcome to CareerHub Pro! Your account has been created successfully.`
+      });
+    } catch (emailError) {
+      console.log('Email service not configured, skipping welcome email');
+    }
 
     const token = generateToken(user._id);
 
@@ -161,13 +165,17 @@ exports.forgotPassword = async (req, res) => {
       expiresIn: '1h'
     });
 
-    // Send email
+    // Send email (optional - skip if email service not configured)
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-    await sendEmail({
-      to: user.email,
-      subject: 'Password Reset Request',
-      text: `You requested a password reset. Click this link: ${resetUrl}`
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request',
+        text: `You requested a password reset. Click this link: ${resetUrl}`
+      });
+    } catch (emailError) {
+      console.log('Email service not configured, skipping password reset email');
+    }
 
     res.json({
       status: 'success',
