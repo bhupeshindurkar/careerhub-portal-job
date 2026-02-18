@@ -1,27 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser, FaBuilding, FaTrash, FaBan, FaCheckCircle } from 'react-icons/fa';
+import adminService from '../../redux/services/adminService';
+import Alert from '../../components/common/Alert';
+import Loader from '../../components/common/Loader';
 
 const Users = () => {
   const [activeTab, setActiveTab] = useState('jobseekers');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [alert, setAlert] = useState(null);
 
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'jobseeker',
-      isVerified: true,
-      createdAt: '2024-01-15',
-    },
-    {
-      id: 2,
-      name: 'Tech Corp',
-      email: 'hr@techcorp.com',
-      role: 'employer',
-      isVerified: true,
-      createdAt: '2024-01-10',
-    },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getAllUsers();
+      setUsers(data.users || []);
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to fetch users' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    
+    try {
+      await adminService.deleteUser(userId);
+      setAlert({ type: 'success', message: 'User deleted successfully' });
+      fetchUsers();
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to delete user' });
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     if (activeTab === 'jobseekers') return user.role === 'jobseeker';
@@ -29,9 +44,13 @@ const Users = () => {
     return true;
   });
 
+  if (loading) return <Loader />;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
+        
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Manage Users</h1>
 
         {/* Tabs */}
@@ -86,7 +105,7 @@ const Users = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id}>
+                <tr key={user._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                   </td>
@@ -94,26 +113,22 @@ const Users = () => {
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {user.isVerified ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Verified
-                      </span>
-                    ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        Pending
-                      </span>
-                    )}
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Active
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-red-600 hover:text-red-900 mr-3">
-                      <FaTrash />
-                    </button>
-                    <button className="text-yellow-600 hover:text-yellow-900">
-                      <FaBan />
-                    </button>
+                    {user.role !== 'admin' && (
+                      <button 
+                        onClick={() => handleDeleteUser(user._id)}
+                        className="text-red-600 hover:text-red-900 mr-3"
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
