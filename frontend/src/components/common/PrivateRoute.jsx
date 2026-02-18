@@ -9,6 +9,12 @@ const PrivateRoute = ({ children, role }) => {
     return <Navigate to="/login" />;
   }
 
+  // Admin can access all routes
+  if (user.role === 'admin') {
+    return children;
+  }
+
+  // Check specific role
   if (role && user.role !== role) {
     return <Navigate to="/" />;
   }
