@@ -6,10 +6,14 @@ import {
   FaClock, FaCheckCircle, FaTimesCircle, FaEye, FaSearch,
   FaBell, FaStar, FaTrophy, FaRocket, FaFire
 } from 'react-icons/fa';
+import dashboardService from '../../redux/services/dashboardService';
+import Loader from '../../components/common/Loader';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Real-time clock
   useEffect(() => {
@@ -19,6 +23,23 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch dashboard data
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await dashboardService.getJobSeekerDashboard();
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get greeting based on time
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -26,6 +47,8 @@ const Dashboard = () => {
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
@@ -78,9 +101,14 @@ const Dashboard = () => {
               <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">Active</span>
             </div>
             <p className="text-gray-600 text-sm font-semibold mb-1">Profile Completion</p>
-            <p className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">75%</p>
+            <p className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+              {dashboardData?.profileCompletion?.percentage || 0}%
+            </p>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style={{width: '75%'}}></div>
+              <div 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500" 
+                style={{width: `${dashboardData?.profileCompletion?.percentage || 0}%`}}
+              ></div>
             </div>
           </div>
 
@@ -92,8 +120,12 @@ const Dashboard = () => {
               <FaFire className="text-orange-500 text-2xl animate-pulse" />
             </div>
             <p className="text-gray-600 text-sm font-semibold mb-1">Applications</p>
-            <p className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">5</p>
-            <p className="text-sm text-gray-500">2 pending responses</p>
+            <p className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              {dashboardData?.stats?.totalApplications || 0}
+            </p>
+            <p className="text-sm text-gray-500">
+              {dashboardData?.stats?.pendingApplications || 0} pending responses
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition border border-green-100 transform hover:-translate-y-1">
@@ -104,8 +136,10 @@ const Dashboard = () => {
               <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">+3 New</span>
             </div>
             <p className="text-gray-600 text-sm font-semibold mb-1">Saved Jobs</p>
-            <p className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">8</p>
-            <p className="text-sm text-gray-500">3 expiring soon</p>
+            <p className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+              {dashboardData?.stats?.savedJobsCount || 0}
+            </p>
+            <p className="text-sm text-gray-500">Your bookmarked jobs</p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition border border-orange-100 transform hover:-translate-y-1">
@@ -116,8 +150,10 @@ const Dashboard = () => {
               <FaTrophy className="text-yellow-500 text-2xl" />
             </div>
             <p className="text-gray-600 text-sm font-semibold mb-1">Interviews</p>
-            <p className="text-4xl font-extrabold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">2</p>
-            <p className="text-sm text-gray-500">1 scheduled today</p>
+            <p className="text-4xl font-extrabold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">
+              {dashboardData?.stats?.interviewsCount || 0}
+            </p>
+            <p className="text-sm text-gray-500">Shortlisted applications</p>
           </div>
         </div>
 
@@ -132,50 +168,39 @@ const Dashboard = () => {
               </Link>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-xl">
-                    <FaBriefcase className="text-white text-xl" />
+              {dashboardData?.recentApplications && dashboardData.recentApplications.length > 0 ? (
+                dashboardData.recentApplications.map((application) => (
+                  <div key={application._id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-xl">
+                        <FaBriefcase className="text-white text-xl" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">{application.job?.title || 'Job Title'}</h3>
+                        <p className="text-sm text-gray-600">{application.job?.company || 'Company'}</p>
+                      </div>
+                    </div>
+                    <span className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 ${
+                      application.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                      application.status === 'shortlisted' ? 'bg-green-100 text-green-700' :
+                      application.status === 'viewed' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {application.status === 'pending' && <FaClock />}
+                      {application.status === 'shortlisted' && <FaCheckCircle />}
+                      {application.status === 'viewed' && <FaEye />}
+                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">React Developer</h3>
-                    <p className="text-sm text-gray-600">Tech Solutions India</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No applications yet. Start applying to jobs!</p>
+                  <Link to="/jobs" className="text-indigo-600 font-semibold hover:text-indigo-700 mt-2 inline-block">
+                    Browse Jobs
+                  </Link>
                 </div>
-                <span className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                  <FaClock /> Pending
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-3 rounded-xl">
-                    <FaBriefcase className="text-white text-xl" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Full Stack Developer</h3>
-                    <p className="text-sm text-gray-600">Innovation Labs</p>
-                  </div>
-                </div>
-                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                  <FaCheckCircle /> Shortlisted
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-3 rounded-xl">
-                    <FaBriefcase className="text-white text-xl" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Frontend Developer</h3>
-                    <p className="text-sm text-gray-600">Digital Innovations</p>
-                  </div>
-                </div>
-                <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                  <FaEye /> Viewed
-                </span>
-              </div>
+              )}
             </div>
           </div>
 
