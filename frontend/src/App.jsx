@@ -45,6 +45,8 @@ import CompanyProfile from './pages/employer/CompanyProfile';
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import Users from './pages/admin/Users';
+import Companies from './pages/admin/Companies';
+import Reports from './pages/admin/Reports';
 
 function App() {
   return (
@@ -81,6 +83,8 @@ function App() {
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<PrivateRoute role="admin"><AdminDashboard /></PrivateRoute>} />
             <Route path="/admin/users" element={<PrivateRoute role="admin"><Users /></PrivateRoute>} />
+            <Route path="/admin/companies" element={<PrivateRoute role="admin"><Companies /></PrivateRoute>} />
+            <Route path="/admin/reports" element={<PrivateRoute role="admin"><Reports /></PrivateRoute>} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
