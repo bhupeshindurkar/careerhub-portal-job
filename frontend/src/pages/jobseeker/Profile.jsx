@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaUser, FaGraduationCap, FaBriefcase, FaCode, FaCamera, FaUpload, FaFileAlt, FaTrash, FaLinkedin, FaGithub, FaGlobe, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload, FaFilePdf } from 'react-icons/fa';
 import userService from '../../redux/services/userService';
 import { setCredentials } from '../../redux/slices/authSlice';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -535,111 +534,6 @@ const Profile = () => {
     } catch (error) {
       console.error('PDF generation error:', error);
       toast.error('❌ Failed to generate PDF: ' + error.message);
-    }
-  };
-          yPos += 6;
-
-          doc.setFontSize(10);
-          doc.setFont(undefined, 'normal');
-          doc.text(`${edu.field || 'Field'} | ${edu.institution || 'Institution'}`, 14, yPos);
-          yPos += 5;
-          doc.text(`${edu.year || 'Year'} | Grade: ${edu.grade || 'N/A'}`, 14, yPos);
-          yPos += 10;
-        });
-      }
-
-      // Experience
-      if (experience.length > 0) {
-        if (yPos > 230) {
-          doc.addPage();
-          yPos = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        doc.setTextColor(99, 102, 241);
-        doc.text('Work Experience', 14, yPos);
-        yPos += 10;
-
-        experience.forEach((exp, index) => {
-          if (yPos > 240) {
-            doc.addPage();
-            yPos = 20;
-          }
-
-          doc.setFontSize(12);
-          doc.setFont(undefined, 'bold');
-          doc.setTextColor(0, 0, 0);
-          doc.text(exp.title || 'Job Title', 14, yPos);
-          yPos += 6;
-
-          doc.setFontSize(10);
-          doc.setFont(undefined, 'normal');
-          doc.text(`${exp.company || 'Company'} | ${exp.duration || 'Duration'}`, 14, yPos);
-          yPos += 5;
-          
-          if (exp.description) {
-            const descLines = doc.splitTextToSize(exp.description, pageWidth - 28);
-            doc.text(descLines, 14, yPos);
-            yPos += (descLines.length * 5) + 5;
-          }
-          yPos += 5;
-        });
-      }
-
-      // Social Links
-      if (formData.linkedin || formData.github || formData.portfolio) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        doc.setTextColor(99, 102, 241);
-        doc.text('Social Links', 14, yPos);
-        yPos += 10;
-
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor(0, 0, 0);
-
-        if (formData.linkedin) {
-          doc.text(`LinkedIn: ${formData.linkedin}`, 14, yPos);
-          yPos += 6;
-        }
-        if (formData.github) {
-          doc.text(`GitHub: ${formData.github}`, 14, yPos);
-          yPos += 6;
-        }
-        if (formData.portfolio) {
-          doc.text(`Portfolio: ${formData.portfolio}`, 14, yPos);
-          yPos += 6;
-        }
-      }
-
-      // Footer - Developer Credit
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFillColor(99, 102, 241);
-        doc.rect(0, doc.internal.pageSize.getHeight() - 20, pageWidth, 20, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(9);
-        doc.setFont(undefined, 'normal');
-        doc.text('Developed by: BHUPESH INDURKAR', pageWidth / 2, doc.internal.pageSize.getHeight() - 12, { align: 'center' });
-        doc.setFontSize(8);
-        doc.text('Full Stack Developer | CareerHub Pro', pageWidth / 2, doc.internal.pageSize.getHeight() - 6, { align: 'center' });
-      }
-
-      // Save PDF
-      const fileName = `${formData.name.replace(/\s+/g, '_')}_Profile.pdf`;
-      doc.save(fileName);
-      toast.success('✅ Profile downloaded as PDF!');
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      toast.error('❌ Failed to generate PDF');
     }
   };
 
