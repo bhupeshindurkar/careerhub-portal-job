@@ -113,6 +113,5 @@ const getMissingFields = (user) => {
   return missing;
 };
 
-module.exports = {
-  getJobSeekerDashboard
-};
+// Export functions
+exports.getJobSeekerDashboard = getJobSeekerDashboard;
