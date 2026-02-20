@@ -186,11 +186,21 @@ const Profile = () => {
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
         
-        toast.success('✅ Profile saved to database successfully!');
+        toast.success('✅ Profile saved successfully!');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast.error('❌ Failed to save profile: ' + (error.response?.data?.message || error.message));
+      let errorMessage = 'Failed to save profile';
+      
+      if (error.response?.status === 413) {
+        errorMessage = 'Image size too large. Please use a smaller image (max 10MB)';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error('❌ ' + errorMessage);
     } finally {
       setSaving(false);
     }
@@ -206,21 +216,31 @@ const Profile = () => {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('❌ File size should be less than 5MB');
+      // Check file size - max 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('❌ Image size should be less than 10MB');
         return;
       }
       if (!file.type.startsWith('image/')) {
         toast.error('❌ Please upload an image file');
         return;
       }
+      
+      // Show loading toast
+      const loadingToast = toast.loading('📤 Uploading image...');
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePicture(reader.result);
         if (user?.email) {
           localStorage.setItem(`profilePicture_${user.email}`, reader.result);
         }
-        toast.success('✅ Profile picture uploaded!');
+        toast.dismiss(loadingToast);
+        toast.success('✅ Image ready! Click "Save Changes" to upload.');
+      };
+      reader.onerror = () => {
+        toast.dismiss(loadingToast);
+        toast.error('❌ Failed to read image file');
       };
       reader.readAsDataURL(file);
     }

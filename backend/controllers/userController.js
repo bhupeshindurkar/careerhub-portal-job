@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Job = require('../models/Job');
+const cloudinary = require('../config/cloudinary');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -37,6 +38,24 @@ exports.updateProfile = async (req, res) => {
         updates[key] = req.body[key];
       }
     });
+
+    // If profilePicture is base64, upload to Cloudinary
+    if (updates.profilePicture && updates.profilePicture.startsWith('data:image')) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(updates.profilePicture, {
+          folder: 'careerhub/profiles',
+          transformation: [
+            { width: 400, height: 400, crop: 'fill' },
+            { quality: 'auto' }
+          ]
+        });
+        updates.profilePicture = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        // If upload fails, keep the old picture
+        delete updates.profilePicture;
+      }
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
