@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaGraduationCap, FaBriefcase, FaCode, FaCamera, FaUpload, FaFileAlt, FaTrash, FaLinkedin, FaGithub, FaGlobe, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
+import userService from '../../redux/services/userService';
+import { setCredentials } from '../../redux/slices/authSlice';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('personal');
+  const [saving, setSaving] = useState(false);
   
   // Load saved data from localStorage (user-specific) - MUST be before any returns
   const [profilePicture, setProfilePicture] = useState(() => {
@@ -148,11 +152,47 @@ const Profile = () => {
     );
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (user?.email) {
-      localStorage.setItem(`profileFormData_${user.email}`, JSON.stringify(formData));
-      toast.success('✅ Profile saved successfully!');
+    try {
+      setSaving(true);
+      
+      // Prepare data to send to backend
+      const profileData = {
+        name: formData.name,
+        phone: formData.phone,
+        location: formData.location,
+        profilePicture: profilePicture,
+        resume: resumeName || null,
+        skills: skills,
+        education: education,
+        experience: experience
+      };
+
+      // Save to database
+      const response = await userService.updateProfile(profileData);
+      
+      if (response.status === 'success') {
+        // Update Redux store with new user data
+        const updatedUser = {
+          ...user,
+          ...response.user
+        };
+        dispatch(setCredentials({ user: updatedUser, token: localStorage.getItem('token') }));
+        
+        // Also save to localStorage for backup
+        if (user?.email) {
+          localStorage.setItem(`profileFormData_${user.email}`, JSON.stringify(formData));
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        
+        toast.success('✅ Profile saved to database successfully!');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('❌ Failed to save profile: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -618,9 +658,10 @@ const Profile = () => {
 
               <button
                 type="submit"
-                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-10 py-4 rounded-xl font-bold hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition transform hover:scale-105 shadow-xl text-lg"
+                disabled={saving}
+                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-10 py-4 rounded-xl font-bold hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition transform hover:scale-105 shadow-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                💾 Save Changes
+                {saving ? '💾 Saving...' : '💾 Save Changes'}
               </button>
             </form>
           )}
@@ -723,16 +764,35 @@ const Profile = () => {
                 
                 {education.length > 0 && (
                   <button 
-                    onClick={() => {
-                      if (user?.email) {
-                        localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(education));
-                        toast.success('✅ Education saved successfully!');
+                    onClick={async () => {
+                      try {
+                        setSaving(true);
+                        const profileData = {
+                          education: education,
+                          skills: skills,
+                          experience: experience
+                        };
+                        const response = await userService.updateProfile(profileData);
+                        if (response.status === 'success') {
+                          const updatedUser = { ...user, ...response.user };
+                          dispatch(setCredentials({ user: updatedUser, token: localStorage.getItem('token') }));
+                          if (user?.email) {
+                            localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(education));
+                            localStorage.setItem('user', JSON.stringify(updatedUser));
+                          }
+                          toast.success('✅ Education saved to database!');
+                        }
+                      } catch (error) {
+                        toast.error('❌ Failed to save: ' + (error.response?.data?.message || error.message));
+                      } finally {
+                        setSaving(false);
                       }
                     }}
                     type="button"
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg"
+                    disabled={saving}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg disabled:opacity-50"
                   >
-                    💾 Save Education
+                    {saving ? '💾 Saving...' : '💾 Save Education'}
                   </button>
                 )}
               </div>
@@ -828,16 +888,35 @@ const Profile = () => {
                 
                 {experience.length > 0 && (
                   <button 
-                    onClick={() => {
-                      if (user?.email) {
-                        localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(experience));
-                        toast.success('✅ Experience saved successfully!');
+                    onClick={async () => {
+                      try {
+                        setSaving(true);
+                        const profileData = {
+                          experience: experience,
+                          education: education,
+                          skills: skills
+                        };
+                        const response = await userService.updateProfile(profileData);
+                        if (response.status === 'success') {
+                          const updatedUser = { ...user, ...response.user };
+                          dispatch(setCredentials({ user: updatedUser, token: localStorage.getItem('token') }));
+                          if (user?.email) {
+                            localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(experience));
+                            localStorage.setItem('user', JSON.stringify(updatedUser));
+                          }
+                          toast.success('✅ Experience saved to database!');
+                        }
+                      } catch (error) {
+                        toast.error('❌ Failed to save: ' + (error.response?.data?.message || error.message));
+                      } finally {
+                        setSaving(false);
                       }
                     }}
                     type="button"
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg"
+                    disabled={saving}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg disabled:opacity-50"
                   >
-                    💾 Save Experience
+                    {saving ? '💾 Saving...' : '💾 Save Experience'}
                   </button>
                 )}
               </div>
@@ -899,16 +978,35 @@ const Profile = () => {
               
               {skills.length > 0 && (
                 <button 
-                  onClick={() => {
-                    if (user?.email) {
-                      localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(skills));
-                      toast.success('✅ Skills saved successfully!');
+                  onClick={async () => {
+                    try {
+                      setSaving(true);
+                      const profileData = {
+                        skills: skills,
+                        education: education,
+                        experience: experience
+                      };
+                      const response = await userService.updateProfile(profileData);
+                      if (response.status === 'success') {
+                        const updatedUser = { ...user, ...response.user };
+                        dispatch(setCredentials({ user: updatedUser, token: localStorage.getItem('token') }));
+                        if (user?.email) {
+                          localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(skills));
+                          localStorage.setItem('user', JSON.stringify(updatedUser));
+                        }
+                        toast.success('✅ Skills saved to database!');
+                      }
+                    } catch (error) {
+                      toast.error('❌ Failed to save: ' + (error.response?.data?.message || error.message));
+                    } finally {
+                      setSaving(false);
                     }
                   }}
                   type="button"
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg"
+                  disabled={saving}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition transform hover:scale-105 shadow-lg disabled:opacity-50"
                 >
-                  💾 Save Skills
+                  {saving ? '💾 Saving...' : '💾 Save Skills'}
                 </button>
               )}
             </div>

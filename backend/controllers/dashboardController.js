@@ -5,7 +5,7 @@ const Job = require('../models/Job');
 // Calculate profile completion percentage
 const calculateProfileCompletion = (user) => {
   let completed = 0;
-  const total = 10; // Total fields to check
+  const total = 8; // Total fields to check
 
   // Basic fields (4 points)
   if (user.name) completed++;
@@ -13,19 +13,15 @@ const calculateProfileCompletion = (user) => {
   if (user.phone) completed++;
   if (user.location) completed++;
 
-  // Profile fields (3 points)
+  // Profile fields (2 points)
   if (user.profilePicture && user.profilePicture !== 'https://via.placeholder.com/150') completed++;
   if (user.resume) completed++;
+
+  // Skills (1 point)
   if (user.skills && user.skills.length > 0) completed++;
 
-  // Education (2 points)
-  if (user.education && user.education.length > 0) completed++;
-
-  // Experience (1 point)
-  if (user.experience && user.experience.length > 0) completed++;
-
-  // Additional info (1 point)
-  if (user.bio || user.about) completed++;
+  // Education OR Experience (1 point) - at least one should be filled
+  if ((user.education && user.education.length > 0) || (user.experience && user.experience.length > 0)) completed++;
 
   const percentage = Math.round((completed / total) * 100);
   return {
@@ -45,8 +41,9 @@ const getMissingFields = (user) => {
   if (!user.profilePicture || user.profilePicture === 'https://via.placeholder.com/150') missing.push('Profile Picture');
   if (!user.resume) missing.push('Resume');
   if (!user.skills || user.skills.length === 0) missing.push('Skills');
-  if (!user.education || user.education.length === 0) missing.push('Education');
-  if (!user.experience || user.experience.length === 0) missing.push('Experience');
+  if ((!user.education || user.education.length === 0) && (!user.experience || user.experience.length === 0)) {
+    missing.push('Education or Experience');
+  }
 
   return missing;
 };
