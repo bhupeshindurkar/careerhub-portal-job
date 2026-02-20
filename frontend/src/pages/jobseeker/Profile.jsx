@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaGraduationCap, FaBriefcase, FaCode, FaCamera, FaUpload, FaFileAlt, FaTrash, FaLinkedin, FaGithub, FaGlobe, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
+import { FaUser, FaGraduationCap, FaBriefcase, FaCode, FaCamera, FaUpload, FaFileAlt, FaTrash, FaLinkedin, FaGithub, FaGlobe, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload, FaFilePdf } from 'react-icons/fa';
 import userService from '../../redux/services/userService';
 import { setCredentials } from '../../redux/slices/authSlice';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -355,6 +357,203 @@ const Profile = () => {
     setExperience(updatedExperience);
   };
 
+  // Download Profile as PDF
+  const handleDownloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let yPos = 20;
+
+      // Header with gradient effect (simulated with colors)
+      doc.setFillColor(99, 102, 241); // Indigo
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont(undefined, 'bold');
+      doc.text('PROFESSIONAL PROFILE', pageWidth / 2, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text('CareerHub Pro - Your Career Partner', pageWidth / 2, 30, { align: 'center' });
+
+      yPos = 50;
+      doc.setTextColor(0, 0, 0);
+
+      // Personal Information
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(99, 102, 241);
+      doc.text('Personal Information', 14, yPos);
+      yPos += 10;
+
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0, 0, 0);
+      
+      const personalInfo = [
+        ['Name', formData.name || 'N/A'],
+        ['Email', formData.email || 'N/A'],
+        ['Phone', formData.phone || 'N/A'],
+        ['Location', formData.location || 'N/A'],
+        ['Current Role', formData.currentRole || 'N/A'],
+        ['Experience', formData.experience || 'N/A'],
+      ];
+
+      doc.autoTable({
+        startY: yPos,
+        head: [],
+        body: personalInfo,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 3 },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 40 },
+          1: { cellWidth: 'auto' }
+        }
+      });
+
+      yPos = doc.lastAutoTable.finalY + 15;
+
+      // Skills
+      if (skills.length > 0) {
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(99, 102, 241);
+        doc.text('Technical Skills', 14, yPos);
+        yPos += 8;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        doc.text(skills.join(' • '), 14, yPos, { maxWidth: pageWidth - 28 });
+        yPos += 15;
+      }
+
+      // Education
+      if (education.length > 0) {
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(99, 102, 241);
+        doc.text('Education', 14, yPos);
+        yPos += 10;
+
+        education.forEach((edu, index) => {
+          if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(edu.degree || 'Degree', 14, yPos);
+          yPos += 6;
+
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
+          doc.text(`${edu.field || 'Field'} | ${edu.institution || 'Institution'}`, 14, yPos);
+          yPos += 5;
+          doc.text(`${edu.year || 'Year'} | Grade: ${edu.grade || 'N/A'}`, 14, yPos);
+          yPos += 10;
+        });
+      }
+
+      // Experience
+      if (experience.length > 0) {
+        if (yPos > 230) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(99, 102, 241);
+        doc.text('Work Experience', 14, yPos);
+        yPos += 10;
+
+        experience.forEach((exp, index) => {
+          if (yPos > 240) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(exp.title || 'Job Title', 14, yPos);
+          yPos += 6;
+
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
+          doc.text(`${exp.company || 'Company'} | ${exp.duration || 'Duration'}`, 14, yPos);
+          yPos += 5;
+          
+          if (exp.description) {
+            const descLines = doc.splitTextToSize(exp.description, pageWidth - 28);
+            doc.text(descLines, 14, yPos);
+            yPos += (descLines.length * 5) + 5;
+          }
+          yPos += 5;
+        });
+      }
+
+      // Social Links
+      if (formData.linkedin || formData.github || formData.portfolio) {
+        if (yPos > 250) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(99, 102, 241);
+        doc.text('Social Links', 14, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+
+        if (formData.linkedin) {
+          doc.text(`LinkedIn: ${formData.linkedin}`, 14, yPos);
+          yPos += 6;
+        }
+        if (formData.github) {
+          doc.text(`GitHub: ${formData.github}`, 14, yPos);
+          yPos += 6;
+        }
+        if (formData.portfolio) {
+          doc.text(`Portfolio: ${formData.portfolio}`, 14, yPos);
+          yPos += 6;
+        }
+      }
+
+      // Footer - Developer Credit
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(99, 102, 241);
+        doc.rect(0, doc.internal.pageSize.getHeight() - 20, pageWidth, 20, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.text('Developed by: BHUPESH INDURKAR', pageWidth / 2, doc.internal.pageSize.getHeight() - 12, { align: 'center' });
+        doc.setFontSize(8);
+        doc.text('Full Stack Developer | CareerHub Pro', pageWidth / 2, doc.internal.pageSize.getHeight() - 6, { align: 'center' });
+      }
+
+      // Save PDF
+      const fileName = `${formData.name.replace(/\s+/g, '_')}_Profile.pdf`;
+      doc.save(fileName);
+      toast.success('✅ Profile downloaded as PDF!');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('❌ Failed to generate PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -385,7 +584,7 @@ const Profile = () => {
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-4xl font-extrabold mb-2">{formData.name || 'Your Name'}</h1>
               <p className="text-xl text-indigo-100 mb-4">{formData.currentRole || 'Job Seeker'}</p>
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm">
+              <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm mb-4">
                 {formData.location && (
                   <span className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm">
                     <FaMapMarkerAlt /> {formData.location}
@@ -397,6 +596,15 @@ const Profile = () => {
                   </span>
                 )}
               </div>
+              
+              {/* Download Profile Button */}
+              <button
+                onClick={handleDownloadPDF}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition flex items-center gap-2 shadow-lg mx-auto md:mx-0"
+              >
+                <FaFilePdf className="text-red-500" />
+                Download Profile PDF
+              </button>
             </div>
 
             {/* Resume Upload */}
