@@ -41,7 +41,7 @@ const Dashboard = () => {
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h1 className="text-4xl font-extrabold mb-2">{getGreeting()}, {user?.name}! 👋</h1>
+                <h1 className="text-4xl font-extrabold mb-2">{getGreeting()}, {user?.name}!</h1>
                 <p className="text-indigo-100 text-lg">Ready to find your dream job today?</p>
               </div>
               <div className="text-right">
@@ -192,19 +192,19 @@ const Dashboard = () => {
                   to="/jobs"
                   className="block w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl text-center font-bold hover:from-indigo-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg"
                 >
-                  🔍 Browse Jobs
+                  Browse Jobs
                 </Link>
                 <Link
                   to="/jobseeker/profile"
                   className="block w-full bg-gradient-to-r from-blue-100 to-indigo-100 text-indigo-700 py-3 rounded-xl text-center font-bold hover:from-blue-200 hover:to-indigo-200 transition"
                 >
-                  👤 Update Profile
+                  Update Profile
                 </Link>
                 <Link
                   to="/jobseeker/saved-jobs"
                   className="block w-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 py-3 rounded-xl text-center font-bold hover:from-green-200 hover:to-emerald-200 transition"
                 >
-                  🔖 Saved Jobs
+                  Saved Jobs
                 </Link>
               </div>
             </div>
@@ -217,15 +217,15 @@ const Dashboard = () => {
               </h2>
               <div className="space-y-3">
                 <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">🎉 New job match!</p>
+                  <p className="text-sm font-semibold text-gray-900">New job match</p>
                   <p className="text-xs text-gray-600">5 new jobs match your profile</p>
                 </div>
                 <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">📅 Interview reminder</p>
+                  <p className="text-sm font-semibold text-gray-900">Interview reminder</p>
                   <p className="text-xs text-gray-600">Tomorrow at 2:00 PM</p>
                 </div>
                 <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">⭐ Profile viewed</p>
+                  <p className="text-sm font-semibold text-gray-900">Profile viewed</p>
                   <p className="text-xs text-gray-600">3 companies viewed your profile</p>
                 </div>
               </div>
