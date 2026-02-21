@@ -8,6 +8,7 @@ exports.getJobs = async (req, res) => {
   try {
     const { 
       search, 
+      company,
       jobType, 
       location, 
       experience, 
@@ -26,6 +27,15 @@ exports.getJobs = async (req, res) => {
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
+    }
+
+    // Company filter - search by company name
+    if (company) {
+      const companyUsers = await require('../models/User').find({
+        companyName: { $regex: company, $options: 'i' }
+      }).select('_id');
+      const companyIds = companyUsers.map(c => c._id);
+      query.company = { $in: companyIds };
     }
 
     // Job type filter
