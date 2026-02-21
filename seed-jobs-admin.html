@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Real Jobs - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .info-box li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .result pre {
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        
+        .note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Seed Real Jobs</h1>
+        <p class="subtitle">Admin Panel - CareerHub Pro</p>
+        
+        <div class="info-box">
+            <h3>📋 What This Will Do:</h3>
+            <ul>
+                <li>Create 18 employer accounts for major companies</li>
+                <li>Add 18 real job postings</li>
+                <li>Companies: Google, Microsoft, Amazon, TCS, Infosys, Wipro, etc.</li>
+                <li>Delete all existing jobs first</li>
+            </ul>
+        </div>
+        
+        <form id="seedForm">
+            <div class="form-group">
+                <label for="email">Admin Email:</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    placeholder="bhupeshindurkar6@gmail.com" 
+                    value="bhupeshindurkar6@gmail.com"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Admin Password:</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="Enter your admin password"
+                    value="Bhupesh@123"
+                    required
+                >
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">
+                🌱 Seed Real Jobs Database
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Seeding database... Please wait...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="note">
+            <strong>⚠️ Important:</strong>
+            This will delete all existing jobs and create new ones. Make sure you're logged in as admin.
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://careerhub-backend-sxue.onrender.com';
+        
+        document.getElementById('seedForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Hide previous results
+            result.style.display = 'none';
+            result.className = 'result';
+            
+            // Show loading
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            
+            try {
+                // Step 1: Login as admin
+                const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (!loginResponse.ok) {
+                    throw new Error(loginData.message || 'Login failed');
+                }
+                
+                if (loginData.user.role !== 'admin') {
+                    throw new Error('You must be an admin to seed jobs');
+                }
+                
+                const token = loginData.token;
+                
+                // Step 2: Call seed API
+                const seedResponse = await fetch(`${API_URL}/api/seed/real-jobs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const seedData = await seedResponse.json();
+                
+                if (!seedResponse.ok) {
+                    throw new Error(seedData.message || 'Seed failed');
+                }
+                
+                // Success
+                loading.style.display = 'none';
+                result.className = 'result success';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>✅ Success!</h3>
+                    <p><strong>Total Jobs Created:</strong> ${seedData.data.totalJobs}</p>
+                    <p><strong>Total Companies:</strong> ${seedData.data.totalCompanies}</p>
+                    <p><strong>Companies:</strong></p>
+                    <pre>${seedData.data.companies.join('\n')}</pre>
+                    <p style="margin-top: 15px;">🎉 Real jobs database is ready! Visit your jobs page to see them.</p>
+                `;
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p>${error.message}</p>
+                    <p style="margin-top: 10px; font-size: 12px;">Make sure you're using admin credentials and the backend is running.</p>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
