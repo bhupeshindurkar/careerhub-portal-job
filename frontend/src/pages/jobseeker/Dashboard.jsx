@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   FaBriefcase, FaFileAlt, FaBookmark, FaUser, FaChartLine, 
-  FaClock, FaCheckCircle, FaTimesCircle, FaEye, FaSearch,
-  FaBell, FaStar, FaTrophy, FaRocket, FaFire
+  FaClock, FaCheckCircle, FaEye, FaSearch,
+  FaRocket, FaFire
 } from 'react-icons/fa';
 import dashboardService from '../../redux/services/dashboardService';
 import Loader from '../../components/common/Loader';
@@ -233,71 +233,14 @@ const Dashboard = () => {
                 </Link>
               </div>
             </div>
-
-            {/* Notifications */}
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-3xl shadow-xl border border-orange-100">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <FaBell className="text-orange-600" />
-                Notifications
-              </h2>
-              <div className="space-y-3">
-                <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">New job match</p>
-                  <p className="text-xs text-gray-600">5 new jobs match your profile</p>
-                </div>
-                <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">Interview reminder</p>
-                  <p className="text-xs text-gray-600">Tomorrow at 2:00 PM</p>
-                </div>
-                <div className="bg-white p-3 rounded-xl">
-                  <p className="text-sm font-semibold text-gray-900">Profile viewed</p>
-                  <p className="text-xs text-gray-600">3 companies viewed your profile</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
 
-        {/* Recommended Jobs */}
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <FaStar className="text-yellow-500" />
-                Recommended For You
-              </h2>
-              <p className="text-gray-600">Based on your profile and preferences</p>
-            </div>
-            <Link
-              to="/jobs"
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg"
-            >
-              View All Jobs
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 hover:shadow-lg transition">
-              <h3 className="font-bold text-gray-900 mb-2">Senior React Developer</h3>
-              <p className="text-sm text-gray-600 mb-3">Tech Corp • Mumbai</p>
-              <div className="flex gap-2 mb-3">
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">React</span>
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">Redux</span>
-              </div>
-              <p className="text-sm font-bold text-indigo-600">₹8-12 LPA</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100 hover:shadow-lg transition">
-              <h3 className="font-bold text-gray-900 mb-2">Full Stack Engineer</h3>
-              <p className="text-sm text-gray-600 mb-3">StartupXYZ • Bangalore</p>
-              <div className="flex gap-2 mb-3">
-                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">MERN</span>
-                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">AWS</span>
-              </div>
-              <p className="text-sm font-bold text-purple-600">₹10-15 LPA</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 hover:shadow-lg transition">
-              <h3 className="font-bold text-gray-900 mb-2">Frontend Developer</h3>
+export default Dashboard;
               <p className="text-sm text-gray-600 mb-3">Digital Agency • Pune</p>
               <div className="flex gap-2 mb-3">
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">Vue.js</span>
