@@ -6,6 +6,7 @@ import { FaUser, FaGraduationCap, FaBriefcase, FaCode, FaCamera, FaUpload, FaFil
 import userService from '../../redux/services/userService';
 import { setCredentials } from '../../redux/slices/authSlice';
 import { jsPDF } from 'jspdf';
+import imageCompression from 'browser-image-compression';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -214,36 +215,45 @@ const Profile = () => {
     });
   };
 
-  const handleProfilePictureChange = (e) => {
+  const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size - max 10MB
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('❌ Image size should be less than 10MB');
-        return;
-      }
       if (!file.type.startsWith('image/')) {
-        toast.error('❌ Please upload an image file');
+        toast.error('Please upload an image file');
         return;
       }
       
-      // Show loading toast
-      const loadingToast = toast.loading('📤 Uploading image...');
+      const loadingToast = toast.loading('Compressing and uploading image...');
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicture(reader.result);
-        if (user?.email) {
-          localStorage.setItem(`profilePicture_${user.email}`, reader.result);
-        }
+      try {
+        // Compress image
+        const options = {
+          maxSizeMB: 1, // Max 1MB after compression
+          maxWidthOrHeight: 800,
+          useWebWorker: true
+        };
+        
+        const compressedFile = await imageCompression(file, options);
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfilePicture(reader.result);
+          if (user?.email) {
+            localStorage.setItem(`profilePicture_${user.email}`, reader.result);
+          }
+          toast.dismiss(loadingToast);
+          toast.success('Image ready! Click "Save Changes" to upload.');
+        };
+        reader.onerror = () => {
+          toast.dismiss(loadingToast);
+          toast.error('Failed to read image file');
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
         toast.dismiss(loadingToast);
-        toast.success('✅ Image ready! Click "Save Changes" to upload.');
-      };
-      reader.onerror = () => {
-        toast.dismiss(loadingToast);
-        toast.error('❌ Failed to read image file');
-      };
-      reader.readAsDataURL(file);
+        toast.error('Failed to compress image: ' + error.message);
+      }
     }
   };
 
@@ -364,69 +374,106 @@ const Profile = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       let yPos = 20;
 
-      // Header with gradient effect (simulated with colors)
-      doc.setFillColor(99, 102, 241); // Indigo
-      doc.rect(0, 0, pageWidth, 40, 'F');
+      // Professional Header with gradient colors
+      doc.setFillColor(67, 56, 202); // Indigo-700
+      doc.rect(0, 0, pageWidth, 50, 'F');
       
       // Title
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
-      doc.text('PROFESSIONAL PROFILE', pageWidth / 2, 20, { align: 'center' });
+      doc.setFontSize(28);
+      doc.text('PROFESSIONAL PROFILE', pageWidth / 2, 25, { align: 'center' });
       
-      doc.setFontSize(12);
-      doc.text('CareerHub Pro - Your Career Partner', pageWidth / 2, 30, { align: 'center' });
-
-      yPos = 50;
-      doc.setTextColor(0, 0, 0);
-
-      // Personal Information
-      doc.setFontSize(16);
-      doc.setTextColor(99, 102, 241);
-      doc.text('Personal Information', 14, yPos);
-      yPos += 10;
-
       doc.setFontSize(11);
-      doc.setTextColor(0, 0, 0);
+      doc.text('CareerHub Pro - Your Career Partner', pageWidth / 2, 38, { align: 'center' });
+
+      yPos = 60;
+
+      // Personal Information Section
+      doc.setFillColor(238, 242, 255); // Light indigo background
+      doc.rect(10, yPos, pageWidth - 20, 8, 'F');
       
-      doc.text(`Name: ${formData.name || 'N/A'}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Email: ${formData.email || 'N/A'}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Phone: ${formData.phone || 'N/A'}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Location: ${formData.location || 'N/A'}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Current Role: ${formData.currentRole || 'N/A'}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Experience: ${formData.experience || 'N/A'}`, 14, yPos);
+      doc.setTextColor(67, 56, 202);
+      doc.setFontSize(14);
+      doc.text('PERSONAL INFORMATION', 14, yPos + 6);
       yPos += 15;
 
-      // Skills
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      
+      // Name
+      doc.setFont(undefined, 'bold');
+      doc.text('Name:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.name || 'N/A', 50, yPos);
+      yPos += 7;
+      
+      // Email
+      doc.setFont(undefined, 'bold');
+      doc.text('Email:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.email || 'N/A', 50, yPos);
+      yPos += 7;
+      
+      // Phone
+      doc.setFont(undefined, 'bold');
+      doc.text('Phone:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.phone || 'N/A', 50, yPos);
+      yPos += 7;
+      
+      // Location
+      doc.setFont(undefined, 'bold');
+      doc.text('Location:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.location || 'N/A', 50, yPos);
+      yPos += 7;
+      
+      // Current Role
+      doc.setFont(undefined, 'bold');
+      doc.text('Current Role:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.currentRole || 'N/A', 50, yPos);
+      yPos += 7;
+      
+      // Experience
+      doc.setFont(undefined, 'bold');
+      doc.text('Experience:', 14, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(formData.experience || 'N/A', 50, yPos);
+      yPos += 15;
+
+      // Skills Section
       if (skills && skills.length > 0) {
-        doc.setFontSize(16);
-        doc.setTextColor(99, 102, 241);
-        doc.text('Technical Skills', 14, yPos);
-        yPos += 8;
+        doc.setFillColor(238, 242, 255);
+        doc.rect(10, yPos, pageWidth - 20, 8, 'F');
+        
+        doc.setTextColor(67, 56, 202);
+        doc.setFontSize(14);
+        doc.text('TECHNICAL SKILLS', 14, yPos + 6);
+        yPos += 15;
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        const skillsText = skills.join(', ');
+        const skillsText = skills.join(' • ');
         const skillsLines = doc.splitTextToSize(skillsText, pageWidth - 28);
         doc.text(skillsLines, 14, yPos);
-        yPos += (skillsLines.length * 5) + 10;
+        yPos += (skillsLines.length * 5) + 12;
       }
 
-      // Education
+      // Education Section
       if (education && education.length > 0) {
         if (yPos > 240) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.setFontSize(16);
-        doc.setTextColor(99, 102, 241);
-        doc.text('Education', 14, yPos);
-        yPos += 10;
+        doc.setFillColor(238, 242, 255);
+        doc.rect(10, yPos, pageWidth - 20, 8, 'F');
+        
+        doc.setTextColor(67, 56, 202);
+        doc.setFontSize(14);
+        doc.text('EDUCATION', 14, yPos + 6);
+        yPos += 15;
 
         education.forEach((edu) => {
           if (yPos > 250) {
@@ -434,12 +481,14 @@ const Profile = () => {
             yPos = 20;
           }
 
-          doc.setFontSize(12);
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text(edu.degree || 'Degree', 14, yPos);
           yPos += 6;
 
           doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
           doc.text(`${edu.field || 'Field'} | ${edu.institution || 'Institution'}`, 14, yPos);
           yPos += 5;
           doc.text(`${edu.year || 'Year'} | Grade: ${edu.grade || 'N/A'}`, 14, yPos);
@@ -448,17 +497,20 @@ const Profile = () => {
         yPos += 5;
       }
 
-      // Experience
+      // Experience Section
       if (experience && experience.length > 0) {
         if (yPos > 230) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.setFontSize(16);
-        doc.setTextColor(99, 102, 241);
-        doc.text('Work Experience', 14, yPos);
-        yPos += 10;
+        doc.setFillColor(238, 242, 255);
+        doc.rect(10, yPos, pageWidth - 20, 8, 'F');
+        
+        doc.setTextColor(67, 56, 202);
+        doc.setFontSize(14);
+        doc.text('WORK EXPERIENCE', 14, yPos + 6);
+        yPos += 15;
 
         experience.forEach((exp) => {
           if (yPos > 240) {
@@ -466,12 +518,14 @@ const Profile = () => {
             yPos = 20;
           }
 
-          doc.setFontSize(12);
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text(exp.title || 'Job Title', 14, yPos);
           yPos += 6;
 
           doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
           doc.text(`${exp.company || 'Company'} | ${exp.duration || 'Duration'}`, 14, yPos);
           yPos += 5;
           
@@ -484,17 +538,20 @@ const Profile = () => {
         });
       }
 
-      // Social Links
+      // Social Links Section
       if (formData.linkedin || formData.github || formData.portfolio) {
         if (yPos > 250) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.setFontSize(16);
-        doc.setTextColor(99, 102, 241);
-        doc.text('Social Links', 14, yPos);
-        yPos += 10;
+        doc.setFillColor(238, 242, 255);
+        doc.rect(10, yPos, pageWidth - 20, 8, 'F');
+        
+        doc.setTextColor(67, 56, 202);
+        doc.setFontSize(14);
+        doc.text('SOCIAL LINKS', 14, yPos + 6);
+        yPos += 15;
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
@@ -513,27 +570,30 @@ const Profile = () => {
         }
       }
 
-      // Footer - Developer Credit on all pages
+      // Professional Footer on all pages
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFillColor(99, 102, 241);
+        doc.setFillColor(67, 56, 202);
         doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(9);
+        doc.setFont(undefined, 'bold');
         doc.text('Developed by: BHUPESH INDURKAR', pageWidth / 2, pageHeight - 12, { align: 'center' });
         doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
         doc.text('Full Stack Developer | CareerHub Pro', pageWidth / 2, pageHeight - 6, { align: 'center' });
       }
 
-      // Save PDF
-      const fileName = `${(formData.name || 'Profile').replace(/\s+/g, '_')}_Profile.pdf`;
+      // Save PDF with proper filename
+      const cleanName = (formData.name || 'Profile').replace(/\s+/g, '_');
+      const fileName = `${cleanName}.pdf`;
       doc.save(fileName);
-      toast.success('✅ Profile downloaded as PDF!');
+      toast.success('Profile downloaded successfully!');
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error('❌ Failed to generate PDF: ' + error.message);
+      toast.error('Failed to generate PDF: ' + error.message);
     }
   };
 
