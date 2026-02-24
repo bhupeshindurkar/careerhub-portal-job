@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
   },
   phone: String,
   location: String,
+  bio: String,
+  linkedin: String,
+  github: String,
+  portfolio: String,
+  currentRole: String,
   isVerified: {
     type: Boolean,
     default: false

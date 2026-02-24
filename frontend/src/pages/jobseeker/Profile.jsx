@@ -167,6 +167,12 @@ const Profile = () => {
         name: formData.name,
         phone: formData.phone,
         location: formData.location,
+        bio: formData.bio,
+        linkedin: formData.linkedin,
+        github: formData.github,
+        portfolio: formData.portfolio,
+        currentRole: formData.currentRole,
+        experience: formData.experience,
         profilePicture: profilePicture,
         resume: resumeFile || resumeName || null, // Send base64 file data or filename
         skills: skills,
@@ -471,6 +477,7 @@ const Profile = () => {
 
       // Professional Bio Section
       if (formData.bio) {
+        console.log('Bio found:', formData.bio); // Debug log
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
         
@@ -485,6 +492,8 @@ const Profile = () => {
         const bioLines = doc.splitTextToSize(formData.bio, pageWidth - 28);
         doc.text(bioLines, 14, yPos);
         yPos += (bioLines.length * 5) + 12;
+      } else {
+        console.log('No bio found in formData'); // Debug log
       }
 
       // Skills Section

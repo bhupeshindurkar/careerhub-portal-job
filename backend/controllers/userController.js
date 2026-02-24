@@ -27,9 +27,10 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const allowedFields = [
-      'name', 'phone', 'location', 'skills', 'education', 
+      'name', 'phone', 'location', 'bio', 'skills', 'education', 
       'experience', 'resume', 'companyName', 'industry', 'companySize',
-      'companyWebsite', 'companyDescription', 'profilePicture'
+      'companyWebsite', 'companyDescription', 'profilePicture', 'linkedin',
+      'github', 'portfolio', 'currentRole'
     ];
 
     const updates = {};
