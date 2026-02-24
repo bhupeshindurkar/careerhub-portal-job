@@ -47,6 +47,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/seed', require('./routes/seed'));
+app.use('/api/contact', require('./routes/contact'));
 
 // Health check route
 app.get('/api/health', (req, res) => {

@@ -136,3 +136,114 @@ exports.sendOTPEmail = (email, otp, name = 'User') => {
     `
   };
 };
+
+// Contact Form Email - Send to Admin
+exports.sendContactFormEmail = (name, email, subject, message) => {
+  return {
+    to: process.env.ADMIN_EMAIL || 'bhupeshindurkar6@gmail.com',
+    subject: `Contact Form: ${subject}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          .info-box { background: #f0f4ff; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 5px; }
+          .message-box { background: #fff; border: 2px solid #e0e0e0; padding: 20px; margin: 20px 0; border-radius: 10px; }
+          .label { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📧 New Contact Form Submission</h1>
+          </div>
+          <div class="content">
+            <p>You have received a new message from the CareerHub Pro contact form.</p>
+            
+            <div class="info-box">
+              <div class="label">From:</div>
+              <p style="margin: 5px 0;"><strong>${name}</strong></p>
+              
+              <div class="label" style="margin-top: 15px;">Email:</div>
+              <p style="margin: 5px 0;"><a href="mailto:${email}" style="color: #667eea;">${email}</a></p>
+              
+              <div class="label" style="margin-top: 15px;">Subject:</div>
+              <p style="margin: 5px 0;">${subject}</p>
+              
+              <div class="label" style="margin-top: 15px;">Date:</div>
+              <p style="margin: 5px 0;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
+            </div>
+            
+            <div class="message-box">
+              <div class="label">Message:</div>
+              <p style="margin-top: 10px; white-space: pre-wrap;">${message}</p>
+            </div>
+            
+            <p style="margin-top: 20px;">
+              <strong>Quick Reply:</strong> 
+              <a href="mailto:${email}?subject=Re: ${subject}" style="color: #667eea; text-decoration: none;">
+                Click here to reply directly
+              </a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>This email was sent from CareerHub Pro Contact Form</p>
+            <p>© 2024 CareerHub Pro. All rights reserved.</p>
+            <p>Developed by BHUPESH INDURKAR</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Contact Form Confirmation - Send to User
+exports.sendContactConfirmationEmail = (name, email) => {
+  return {
+    to: email,
+    subject: 'Thank you for contacting CareerHub Pro',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✅ Message Received!</h1>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${name}</strong>,</p>
+            <p>Thank you for reaching out to CareerHub Pro! We have received your message and will get back to you within 24 hours.</p>
+            <p>Our team is reviewing your inquiry and will respond as soon as possible.</p>
+            <p>In the meantime, feel free to explore our platform:</p>
+            <ul>
+              <li>Browse thousands of job opportunities</li>
+              <li>Complete your profile to stand out</li>
+              <li>Connect with top employers</li>
+            </ul>
+            <p>Best regards,<br><strong>CareerHub Pro Team</strong><br>Developed by BHUPESH INDURKAR</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated confirmation email.</p>
+            <p>© 2024 CareerHub Pro. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
