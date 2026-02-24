@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seed Real Jobs - Admin Panel</title>
+    <title>Trigger Seed - CareerHub</title>
     <style>
         * {
             margin: 0;
@@ -58,49 +58,10 @@
             font-size: 16px;
         }
         
-        .info-box ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .info-box li {
-            padding: 5px 0;
+        .info-box p {
             color: #555;
             font-size: 14px;
-        }
-        
-        .info-box li:before {
-            content: "✓ ";
-            color: #28a745;
-            font-weight: bold;
-            margin-right: 5px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            line-height: 1.6;
         }
         
         .btn {
@@ -152,15 +113,6 @@
             font-size: 18px;
         }
         
-        .result pre {
-            background: rgba(0,0,0,0.05);
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
         .loading {
             text-align: center;
             color: #667eea;
@@ -192,8 +144,36 @@
             margin-top: 20px;
             font-size: 13px;
         }
-        
-        .note strong {
+
+        .link-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .link-box a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .link-box a:hover {
+            text-decoration: underline;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .step strong {
+            color: #28a745;
             display: block;
             margin-bottom: 5px;
         }
@@ -201,88 +181,121 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Seed Real Jobs</h1>
-        <p class="subtitle">Admin Panel - CareerHub Pro</p>
+        <h1>Seed Production Jobs</h1>
+        <p class="subtitle">Simple Browser Method - No Shell Needed</p>
         
         <div class="info-box">
-            <h3>📋 What This Will Do:</h3>
-            <ul>
-                <li>Create 18 employer accounts for major companies</li>
-                <li>Add 18 real job postings</li>
-                <li>Companies: Google, Microsoft, Amazon, TCS, Infosys, Wipro, etc.</li>
-                <li>Delete all existing jobs first</li>
-            </ul>
+            <h3>Instructions:</h3>
+            <p>Since Render free tier doesn't support Shell access, we'll use a direct API call method. Just click the button below!</p>
         </div>
-        
-        <form id="seedForm">
-            <div class="form-group">
-                <label for="email">Admin Email:</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    placeholder="bhupeshindurkar6@gmail.com" 
-                    value="bhupeshindurkar6@gmail.com"
-                    required
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Admin Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    placeholder="Enter your admin password"
-                    value="Bhupesh@123"
-                    required
-                >
-            </div>
-            
-            <button type="submit" class="btn" id="submitBtn">
-                🌱 Seed Real Jobs Database
-            </button>
-        </form>
+
+        <div class="step">
+            <strong>Step 1:</strong>
+            Click the button below to wake up the backend (takes 30-60 seconds)
+        </div>
+
+        <button onclick="wakeUpBackend()" class="btn" id="wakeBtn">
+            Wake Up Backend
+        </button>
+
+        <div class="step" style="margin-top: 20px; display: none;" id="step2">
+            <strong>Step 2:</strong>
+            Once backend is awake, click this button to seed the database
+        </div>
+
+        <button onclick="seedDatabase()" class="btn" id="seedBtn" style="display: none; margin-top: 10px;">
+            Seed Database Now
+        </button>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Seeding database... Please wait...</p>
+            <p id="loadingText">Processing...</p>
         </div>
         
         <div class="result" id="result"></div>
         
         <div class="note">
-            <strong>⚠️ Important:</strong>
-            This will delete all existing jobs and create new ones. Make sure you're logged in as admin.
+            <strong>Note:</strong>
+            This process will take 1-2 minutes total. First we wake up the backend, then we seed the database.
+        </div>
+
+        <div class="link-box">
+            <strong>After seeding, check jobs here:</strong><br>
+            <a href="https://careerhub-portal-job.vercel.app/jobs" target="_blank">
+                https://careerhub-portal-job.vercel.app/jobs
+            </a>
         </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = 'https://careerhub-backend-sxue.onrender.com';
         
-        document.getElementById('seedForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submitBtn');
+        async function wakeUpBackend() {
+            const wakeBtn = document.getElementById('wakeBtn');
             const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
             const result = document.getElementById('result');
+            const step2 = document.getElementById('step2');
+            const seedBtn = document.getElementById('seedBtn');
             
-            // Hide previous results
             result.style.display = 'none';
-            result.className = 'result';
-            
-            // Show loading
             loading.style.display = 'block';
-            submitBtn.disabled = true;
+            loadingText.textContent = 'Waking up backend... (30-60 seconds)';
+            wakeBtn.disabled = true;
             
             try {
-                // Step 1: Login as admin
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    loading.style.display = 'none';
+                    result.className = 'result success';
+                    result.style.display = 'block';
+                    result.innerHTML = `
+                        <h3>Success!</h3>
+                        <p>Backend is awake and running!</p>
+                        <p style="margin-top: 10px;">Now click the "Seed Database Now" button below.</p>
+                    `;
+                    
+                    step2.style.display = 'block';
+                    seedBtn.style.display = 'block';
+                    wakeBtn.style.display = 'none';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>Error</h3>
+                    <p>${error.message}</p>
+                    <p style="margin-top: 10px;">Please wait a moment and try again.</p>
+                `;
+                wakeBtn.disabled = false;
+            }
+        }
+        
+        async function seedDatabase() {
+            const seedBtn = document.getElementById('seedBtn');
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const result = document.getElementById('result');
+            
+            result.style.display = 'none';
+            loading.style.display = 'block';
+            loadingText.textContent = 'Seeding database... Please wait...';
+            seedBtn.disabled = true;
+            
+            try {
+                // Login first
                 const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'bhupeshindurkar6@gmail.com',
+                        password: 'Bhupesh@123'
+                    })
                 });
                 
                 const loginData = await loginResponse.json();
@@ -291,13 +304,9 @@
                     throw new Error(loginData.message || 'Login failed');
                 }
                 
-                if (loginData.user.role !== 'admin') {
-                    throw new Error('You must be an admin to seed jobs');
-                }
-                
                 const token = loginData.token;
                 
-                // Step 2: Call seed API
+                // Call seed API
                 const seedResponse = await fetch(`${API_URL}/api/seed/real-jobs`, {
                     method: 'POST',
                     headers: {
@@ -312,17 +321,20 @@
                     throw new Error(seedData.message || 'Seed failed');
                 }
                 
-                // Success
                 loading.style.display = 'none';
                 result.className = 'result success';
                 result.style.display = 'block';
                 result.innerHTML = `
-                    <h3>✅ Success!</h3>
+                    <h3>Success!</h3>
                     <p><strong>Total Jobs Created:</strong> ${seedData.data.totalJobs}</p>
                     <p><strong>Total Companies:</strong> ${seedData.data.totalCompanies}</p>
-                    <p><strong>Companies:</strong></p>
-                    <pre>${seedData.data.companies.join('\n')}</pre>
-                    <p style="margin-top: 15px;">🎉 Real jobs database is ready! Visit your jobs page to see them.</p>
+                    <p style="margin-top: 15px;">Production database is ready!</p>
+                    <p style="margin-top: 10px;">
+                        <a href="https://careerhub-portal-job.vercel.app/jobs" target="_blank" 
+                           style="color: #667eea; font-weight: bold; text-decoration: underline;">
+                            View Jobs on Live Site
+                        </a>
+                    </p>
                 `;
                 
             } catch (error) {
@@ -330,14 +342,12 @@
                 result.className = 'result error';
                 result.style.display = 'block';
                 result.innerHTML = `
-                    <h3>❌ Error</h3>
+                    <h3>Error</h3>
                     <p>${error.message}</p>
-                    <p style="margin-top: 10px; font-size: 12px;">Make sure you're using admin credentials and the backend is running.</p>
                 `;
-            } finally {
-                submitBtn.disabled = false;
+                seedBtn.disabled = false;
             }
-        });
+        }
     </script>
 </body>
 </html>

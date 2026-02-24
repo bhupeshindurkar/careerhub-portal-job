@@ -159,13 +159,16 @@ const Profile = () => {
     try {
       setSaving(true);
       
+      // Get resume file from localStorage if exists
+      const resumeFile = user?.email ? localStorage.getItem(`resumeFile_${user.email}`) : null;
+      
       // Prepare data to send to backend
       const profileData = {
         name: formData.name,
         phone: formData.phone,
         location: formData.location,
         profilePicture: profilePicture,
-        resume: resumeName || null,
+        resume: resumeFile || resumeName || null, // Send base64 file data or filename
         skills: skills,
         education: education,
         experience: experience
@@ -188,21 +191,21 @@ const Profile = () => {
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
         
-        toast.success('✅ Profile saved successfully!');
+        toast.success('Profile saved successfully!');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
       let errorMessage = 'Failed to save profile';
       
       if (error.response?.status === 413) {
-        errorMessage = 'Image size too large. Please use a smaller image (max 10MB)';
+        errorMessage = 'File size too large. Please use smaller files';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      toast.error('❌ ' + errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -257,29 +260,53 @@ const Profile = () => {
     }
   };
 
-  const handleResumeChange = (e) => {
+  const handleResumeChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        toast.error('❌ Resume size should be less than 10MB');
+        toast.error('Resume size should be less than 10MB');
         return;
       }
       if (!file.name.match(/\.(pdf|doc|docx)$/)) {
-        toast.error('❌ Please upload PDF or DOC file only');
+        toast.error('Please upload PDF or DOC file only');
         return;
       }
       
-      // Save file to localStorage as base64 (user-specific)
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (user?.email) {
-          localStorage.setItem(`resumeFile_${user.email}`, reader.result);
-          localStorage.setItem(`resumeName_${user.email}`, file.name);
-          setResumeName(file.name);
-          toast.success('✅ Resume uploaded successfully!');
-        }
-      };
-      reader.readAsDataURL(file);
+      const loadingToast = toast.loading('Uploading resume...');
+      
+      try {
+        // Convert file to base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            // Upload to Cloudinary via backend
+            const formData = new FormData();
+            formData.append('resume', file);
+            
+            // For now, store in localStorage and set filename
+            // The actual upload will happen when user clicks "Save Changes"
+            if (user?.email) {
+              localStorage.setItem(`resumeFile_${user.email}`, reader.result);
+              localStorage.setItem(`resumeName_${user.email}`, file.name);
+              setResumeName(file.name);
+            }
+            
+            toast.dismiss(loadingToast);
+            toast.success('Resume ready! Click "Save Changes" to upload.');
+          } catch (error) {
+            toast.dismiss(loadingToast);
+            toast.error('Failed to prepare resume: ' + error.message);
+          }
+        };
+        reader.onerror = () => {
+          toast.dismiss(loadingToast);
+          toast.error('Failed to read resume file');
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        toast.error('Failed to upload resume: ' + error.message);
+      }
     }
   };
 

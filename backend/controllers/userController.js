@@ -57,6 +57,22 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // If resume is base64 (PDF/DOC), upload to Cloudinary
+    if (updates.resume && updates.resume.startsWith('data:application')) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(updates.resume, {
+          folder: 'careerhub/resumes',
+          resource_type: 'raw', // For non-image files
+          format: 'pdf'
+        });
+        updates.resume = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary resume upload error:', uploadError);
+        // If upload fails, keep the old resume
+        delete updates.resume;
+      }
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
       updates,

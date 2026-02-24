@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seed Real Jobs - Admin Panel</title>
+    <title>Seed Production Jobs - CareerHub</title>
     <style>
         * {
             margin: 0;
@@ -42,6 +42,17 @@
             text-align: center;
             margin-bottom: 30px;
             font-size: 14px;
+        }
+        
+        .badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
         }
         
         .info-box {
@@ -159,6 +170,8 @@
             overflow-x: auto;
             font-size: 12px;
             margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
         }
         
         .loading {
@@ -197,16 +210,40 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        .link-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .link-box a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .link-box a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Seed Real Jobs</h1>
-        <p class="subtitle">Admin Panel - CareerHub Pro</p>
+        <div style="text-align: center;">
+            <span class="badge">PRODUCTION</span>
+        </div>
+        
+        <h1>Seed Production Jobs</h1>
+        <p class="subtitle">CareerHub Pro - Render Backend</p>
         
         <div class="info-box">
-            <h3>📋 What This Will Do:</h3>
+            <h3>What This Will Do:</h3>
             <ul>
+                <li>Connect to PRODUCTION database (Render)</li>
                 <li>Create 18 employer accounts for major companies</li>
                 <li>Add 18 real job postings</li>
                 <li>Companies: Google, Microsoft, Amazon, TCS, Infosys, Wipro, etc.</li>
@@ -238,25 +275,32 @@
             </div>
             
             <button type="submit" class="btn" id="submitBtn">
-                🌱 Seed Real Jobs Database
+                Seed Production Database
             </button>
         </form>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Seeding database... Please wait...</p>
+            <p>Seeding production database... Please wait...</p>
         </div>
         
         <div class="result" id="result"></div>
         
         <div class="note">
-            <strong>⚠️ Important:</strong>
-            This will delete all existing jobs and create new ones. Make sure you're logged in as admin.
+            <strong>Important:</strong>
+            This will seed the PRODUCTION database on Render. All existing jobs will be deleted and replaced with 18 real company jobs.
+        </div>
+
+        <div class="link-box">
+            <strong>After seeding, check jobs here:</strong><br>
+            <a href="https://careerhub-portal-job.vercel.app/jobs" target="_blank">
+                https://careerhub-portal-job.vercel.app/jobs
+            </a>
         </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = 'https://careerhub-backend-sxue.onrender.com';
         
         document.getElementById('seedForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -277,6 +321,7 @@
             
             try {
                 // Step 1: Login as admin
+                console.log('Logging in...');
                 const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: {
@@ -286,6 +331,7 @@
                 });
                 
                 const loginData = await loginResponse.json();
+                console.log('Login response:', loginData);
                 
                 if (!loginResponse.ok) {
                     throw new Error(loginData.message || 'Login failed');
@@ -298,6 +344,7 @@
                 const token = loginData.token;
                 
                 // Step 2: Call seed API
+                console.log('Calling seed API...');
                 const seedResponse = await fetch(`${API_URL}/api/seed/real-jobs`, {
                     method: 'POST',
                     headers: {
@@ -307,6 +354,7 @@
                 });
                 
                 const seedData = await seedResponse.json();
+                console.log('Seed response:', seedData);
                 
                 if (!seedResponse.ok) {
                     throw new Error(seedData.message || 'Seed failed');
@@ -317,22 +365,34 @@
                 result.className = 'result success';
                 result.style.display = 'block';
                 result.innerHTML = `
-                    <h3>✅ Success!</h3>
+                    <h3>Success!</h3>
                     <p><strong>Total Jobs Created:</strong> ${seedData.data.totalJobs}</p>
                     <p><strong>Total Companies:</strong> ${seedData.data.totalCompanies}</p>
                     <p><strong>Companies:</strong></p>
                     <pre>${seedData.data.companies.join('\n')}</pre>
-                    <p style="margin-top: 15px;">🎉 Real jobs database is ready! Visit your jobs page to see them.</p>
+                    <p style="margin-top: 15px;">Production database is ready!</p>
+                    <p style="margin-top: 10px;">
+                        <a href="https://careerhub-portal-job.vercel.app/jobs" target="_blank" 
+                           style="color: #667eea; font-weight: bold; text-decoration: underline;">
+                            View Jobs on Live Site
+                        </a>
+                    </p>
                 `;
                 
             } catch (error) {
+                console.error('Error:', error);
                 loading.style.display = 'none';
                 result.className = 'result error';
                 result.style.display = 'block';
                 result.innerHTML = `
-                    <h3>❌ Error</h3>
+                    <h3>Error</h3>
                     <p>${error.message}</p>
-                    <p style="margin-top: 10px; font-size: 12px;">Make sure you're using admin credentials and the backend is running.</p>
+                    <p style="margin-top: 10px; font-size: 12px;">
+                        Make sure:<br>
+                        - You're using correct admin credentials<br>
+                        - Render backend is running and deployed<br>
+                        - Internet connection is stable
+                    </p>
                 `;
             } finally {
                 submitBtn.disabled = false;
