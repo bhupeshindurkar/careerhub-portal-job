@@ -469,6 +469,24 @@ const Profile = () => {
       doc.text(formData.experience || 'N/A', 50, yPos);
       yPos += 15;
 
+      // Professional Bio Section
+      if (formData.bio) {
+        doc.setFillColor(238, 242, 255);
+        doc.rect(10, yPos, pageWidth - 20, 8, 'F');
+        
+        doc.setTextColor(67, 56, 202);
+        doc.setFontSize(14);
+        doc.text('PROFESSIONAL BIO', 14, yPos + 6);
+        yPos += 15;
+
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'normal');
+        const bioLines = doc.splitTextToSize(formData.bio, pageWidth - 28);
+        doc.text(bioLines, 14, yPos);
+        yPos += (bioLines.length * 5) + 12;
+      }
+
       // Skills Section
       if (skills && skills.length > 0) {
         doc.setFillColor(238, 242, 255);
