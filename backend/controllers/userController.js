@@ -199,9 +199,32 @@ exports.getSavedJobs = async (req, res) => {
   }
 };
 
-// @desc    Get all users (Admin only)
-// @route   GET /api/users
-// @access  Private (Admin only)
+// @desc    Proxy image URL to base64 (for PDF generation)
+// @route   GET /api/users/image-proxy?url=...
+// @access  Private
+exports.imageProxy = async (req, res) => {
+  try {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ message: 'URL required' });
+
+    const https = require('https');
+    const http = require('http');
+    const client = url.startsWith('https') ? https : http;
+
+    client.get(url, (imgRes) => {
+      const chunks = [];
+      imgRes.on('data', chunk => chunks.push(chunk));
+      imgRes.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const base64 = buffer.toString('base64');
+        const contentType = imgRes.headers['content-type'] || 'image/jpeg';
+        res.json({ base64: `data:${contentType};base64,${base64}` });
+      });
+    }).on('error', () => res.status(500).json({ message: 'Failed to fetch image' }));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 exports.getAllUsers = async (req, res) => {
   try {
     const { role, search } = req.query;

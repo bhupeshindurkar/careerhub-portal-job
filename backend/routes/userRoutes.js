@@ -7,11 +7,13 @@ const {
   toggleSaveJob,
   getSavedJobs,
   getAllUsers,
-  deleteUser
+  deleteUser,
+  imageProxy
 } = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/auth');
 const { uploadResume: uploadMiddleware } = require('../middleware/upload');
 
+router.get('/image-proxy', protect, imageProxy);
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
 router.post('/upload-resume', protect, uploadMiddleware.single('resume'), uploadResume);

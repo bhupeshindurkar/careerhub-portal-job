@@ -454,22 +454,21 @@ const Profile = () => {
   };
 
   // Download Profile as PDF
-  const getImageBase64 = (url) => {
-    return new Promise((resolve) => {
-      if (!url || url.includes('placeholder')) return resolve(null);
-      if (url.startsWith('data:image')) return resolve(url);
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg'));
-      };
-      img.onerror = () => resolve(null);
-      img.src = url;
-    });
+  const getImageBase64 = async (url) => {
+    if (!url || url.includes('placeholder')) return null;
+    // Already base64
+    if (url.startsWith('data:image')) return url;
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(url)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      return data.base64 || null;
+    } catch (e) {
+      return null;
+    }
   };
 
   const handleDownloadPDF = async () => {
