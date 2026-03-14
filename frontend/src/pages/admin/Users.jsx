@@ -284,8 +284,12 @@ const Users = () => {
                     {/* User */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                          {user.name?.charAt(0).toUpperCase()}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
+                          {user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars') ? (
+                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{user.name?.charAt(0).toUpperCase()}</span>
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
@@ -410,8 +414,12 @@ const Users = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
-                  {viewUser.name?.charAt(0).toUpperCase()}
+                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                  {viewUser.profilePicture && !viewUser.profilePicture.includes('placeholder') && !viewUser.profilePicture.includes('ui-avatars') ? (
+                    <img src={viewUser.profilePicture} alt={viewUser.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{viewUser.name?.charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{viewUser.name}</h2>

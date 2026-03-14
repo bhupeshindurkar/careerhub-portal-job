@@ -479,14 +479,26 @@ const Profile = () => {
 
       // Professional Header
       doc.setFillColor(67, 56, 202);
-      doc.rect(0, 0, pageWidth, 50, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
-      doc.text('PROFESSIONAL PROFILE', pageWidth / 2, 25, { align: 'center' });
-      doc.setFontSize(11);
-      doc.text('CareerHub Pro - Your Career Partner', pageWidth / 2, 38, { align: 'center' });
+      doc.rect(0, 0, pageWidth, 65, 'F');
 
-      yPos = 60;
+      // Profile image in header (circular look via square with rounded feel)
+      const imgSrc = profilePicture || user?.profilePicture;
+      if (imgSrc && imgSrc.startsWith('data:image')) {
+        try {
+          doc.addImage(imgSrc, 'JPEG', 10, 8, 48, 48);
+        } catch (e) { /* skip if image fails */ }
+      }
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.text(pd.name || 'Professional Profile', 68, 22);
+      doc.setFontSize(12);
+      doc.text(pd.currentRole || 'Job Seeker', 68, 33);
+      doc.setFontSize(10);
+      if (pd.email) doc.text(pd.email, 68, 43);
+      if (pd.phone) doc.text(pd.phone, 68, 52);
+
+      yPos = 75;
 
       // Personal Information Section
       doc.setFillColor(238, 242, 255);
