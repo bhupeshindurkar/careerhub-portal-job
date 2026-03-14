@@ -114,6 +114,60 @@ const Profile = () => {
       });
     }
   }, [user?.email]);
+
+  // Fetch fresh profile from backend on mount to get latest data (bio, linkedin, etc.)
+  useEffect(() => {
+    const fetchFreshProfile = async () => {
+      if (!user?.email) return;
+      try {
+        const response = await userService.getProfile();
+        if (response.status === 'success' && response.user) {
+          const freshUser = response.user;
+          // Update formData with fresh backend data
+          setFormData(prev => ({
+            ...prev,
+            name: freshUser.name || prev.name,
+            phone: freshUser.phone || prev.phone,
+            location: freshUser.location || prev.location,
+            bio: freshUser.bio || prev.bio,
+            linkedin: freshUser.linkedin || prev.linkedin,
+            github: freshUser.github || prev.github,
+            portfolio: freshUser.portfolio || prev.portfolio,
+            currentRole: freshUser.currentRole || prev.currentRole,
+          }));
+          // Update skills, education, experience if available
+          if (freshUser.skills?.length > 0) setSkills(freshUser.skills);
+          if (freshUser.education?.length > 0) setEducation(freshUser.education);
+          if (freshUser.experience?.length > 0) setExperience(freshUser.experience);
+          // Update resume name if available
+          if (freshUser.resume && freshUser.resume.startsWith('http')) {
+            setResumeName(freshUser.resume);
+          }
+          // Update profile picture if available
+          if (freshUser.profilePicture && freshUser.profilePicture.startsWith('http') && !freshUser.profilePicture.includes('placeholder')) {
+            setProfilePicture(freshUser.profilePicture);
+          }
+          // Sync localStorage with fresh data
+          localStorage.setItem(`profileFormData_${user.email}`, JSON.stringify({
+            name: freshUser.name || '',
+            email: freshUser.email || '',
+            phone: freshUser.phone || '',
+            location: freshUser.location || '',
+            bio: freshUser.bio || '',
+            linkedin: freshUser.linkedin || '',
+            github: freshUser.github || '',
+            portfolio: freshUser.portfolio || '',
+            currentRole: freshUser.currentRole || '',
+            experience: freshUser.experience || '',
+          }));
+        }
+      } catch (error) {
+        // Silently fail - use cached data
+      }
+    };
+    fetchFreshProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email]);
   
   // Redirect if not logged in
   useEffect(() => {
@@ -477,7 +531,6 @@ const Profile = () => {
 
       // Professional Bio Section
       if (formData.bio) {
-        console.log('Bio found:', formData.bio); // Debug log
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
         
@@ -492,8 +545,6 @@ const Profile = () => {
         const bioLines = doc.splitTextToSize(formData.bio, pageWidth - 28);
         doc.text(bioLines, 14, yPos);
         yPos += (bioLines.length * 5) + 12;
-      } else {
-        console.log('No bio found in formData'); // Debug log
       }
 
       // Skills Section

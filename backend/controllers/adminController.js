@@ -68,32 +68,64 @@ exports.getDashboardStats = async (req, res) => {
 // @access  Private (Admin only)
 exports.getAllUsersDetailed = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
     const users = await User.find()
       .select('-password')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    
-    const total = await User.countDocuments();
+      .sort({ createdAt: -1 });
     
     res.json({
       status: 'success',
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      users
     });
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+// @desc    Get single user details
+// @route   GET /api/admin/users/:id
+// @access  Private (Admin only)
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+    res.json({ status: 'success', user });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+// @desc    Update user by admin
+// @route   PUT /api/admin/users/:id
+// @access  Private (Admin only)
+exports.updateUserByAdmin = async (req, res) => {
+  try {
+    const allowedFields = ['name', 'email', 'phone', 'location', 'bio', 'role',
+      'skills', 'education', 'experience', 'linkedin', 'github', 'portfolio',
+      'currentRole', 'companyName', 'industry'];
+    
+    const updates = {};
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) updates[key] = req.body[key];
     });
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password');
+    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+
+    res.json({ status: 'success', user });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+// @desc    Delete user by admin
+// @route   DELETE /api/admin/users/:id
+// @access  Private (Admin only)
+exports.deleteUserByAdmin = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+    res.json({ status: 'success', message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
