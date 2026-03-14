@@ -461,24 +461,36 @@ const Profile = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       let yPos = 20;
 
-      // Professional Header with gradient colors
-      doc.setFillColor(67, 56, 202); // Indigo-700
+      // Merge formData + user Redux data so nothing is missed
+      const pd = {
+        name: formData.name || user?.name || '',
+        email: formData.email || user?.email || '',
+        phone: formData.phone || user?.phone || '',
+        location: formData.location || user?.location || '',
+        bio: formData.bio || user?.bio || '',
+        currentRole: formData.currentRole || user?.currentRole || '',
+        linkedin: formData.linkedin || user?.linkedin || '',
+        github: formData.github || user?.github || '',
+        portfolio: formData.portfolio || user?.portfolio || '',
+      };
+      const pdfSkills = skills.length > 0 ? skills : (user?.skills || []);
+      const pdfEducation = education.length > 0 ? education : (user?.education || []);
+      const pdfExperience = experience.length > 0 ? experience : (user?.experience || []);
+
+      // Professional Header
+      doc.setFillColor(67, 56, 202);
       doc.rect(0, 0, pageWidth, 50, 'F');
-      
-      // Title
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(28);
       doc.text('PROFESSIONAL PROFILE', pageWidth / 2, 25, { align: 'center' });
-      
       doc.setFontSize(11);
       doc.text('CareerHub Pro - Your Career Partner', pageWidth / 2, 38, { align: 'center' });
 
       yPos = 60;
 
       // Personal Information Section
-      doc.setFillColor(238, 242, 255); // Light indigo background
+      doc.setFillColor(238, 242, 255);
       doc.rect(10, yPos, pageWidth - 20, 8, 'F');
-      
       doc.setTextColor(67, 56, 202);
       doc.setFontSize(14);
       doc.text('PERSONAL INFORMATION', 14, yPos + 6);
@@ -486,69 +498,42 @@ const Profile = () => {
 
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
-      
-      // Name
-      doc.setFont(undefined, 'bold');
-      doc.text('Name:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.name || 'N/A', 50, yPos);
-      yPos += 7;
-      
-      // Email
-      doc.setFont(undefined, 'bold');
-      doc.text('Email:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.email || 'N/A', 50, yPos);
-      yPos += 7;
-      
-      // Phone
-      doc.setFont(undefined, 'bold');
-      doc.text('Phone:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.phone || 'N/A', 50, yPos);
-      yPos += 7;
-      
-      // Location
-      doc.setFont(undefined, 'bold');
-      doc.text('Location:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.location || 'N/A', 50, yPos);
-      yPos += 7;
-      
-      // Current Role
-      doc.setFont(undefined, 'bold');
-      doc.text('Current Role:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.currentRole || 'N/A', 50, yPos);
-      yPos += 7;
-      
-      // Experience
-      doc.setFont(undefined, 'bold');
-      doc.text('Experience:', 14, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(formData.experience || 'N/A', 50, yPos);
-      yPos += 15;
+
+      const infoField = (label, value) => {
+        if (!value) return;
+        doc.setFont(undefined, 'bold');
+        doc.text(`${label}:`, 14, yPos);
+        doc.setFont(undefined, 'normal');
+        const lines = doc.splitTextToSize(String(value), pageWidth - 60);
+        doc.text(lines, 50, yPos);
+        yPos += lines.length * 6 + 1;
+      };
+
+      infoField('Name', pd.name);
+      infoField('Email', pd.email);
+      infoField('Phone', pd.phone);
+      infoField('Location', pd.location);
+      infoField('Current Role', pd.currentRole);
+      yPos += 8;
 
       // Professional Bio Section
-      if (formData.bio) {
+      if (pd.bio) {
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
-        
         doc.setTextColor(67, 56, 202);
         doc.setFontSize(14);
         doc.text('PROFESSIONAL BIO', 14, yPos + 6);
         yPos += 15;
-
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
         doc.setFont(undefined, 'normal');
-        const bioLines = doc.splitTextToSize(formData.bio, pageWidth - 28);
+        const bioLines = doc.splitTextToSize(pd.bio, pageWidth - 28);
         doc.text(bioLines, 14, yPos);
         yPos += (bioLines.length * 5) + 12;
       }
 
       // Skills Section
-      if (skills && skills.length > 0) {
+      if (pdfSkills && pdfSkills.length > 0) {
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
         
@@ -559,81 +544,60 @@ const Profile = () => {
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        const skillsText = skills.join(' • ');
+        const skillsText = pdfSkills.join(' • ');
         const skillsLines = doc.splitTextToSize(skillsText, pageWidth - 28);
         doc.text(skillsLines, 14, yPos);
         yPos += (skillsLines.length * 5) + 12;
       }
 
       // Education Section
-      if (education && education.length > 0) {
-        if (yPos > 240) {
-          doc.addPage();
-          yPos = 20;
-        }
-
+      if (pdfEducation && pdfEducation.length > 0) {
+        if (yPos > 240) { doc.addPage(); yPos = 20; }
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
-        
         doc.setTextColor(67, 56, 202);
         doc.setFontSize(14);
         doc.text('EDUCATION', 14, yPos + 6);
         yPos += 15;
 
-        education.forEach((edu) => {
-          if (yPos > 250) {
-            doc.addPage();
-            yPos = 20;
-          }
-
+        pdfEducation.forEach((edu) => {
+          if (yPos > 250) { doc.addPage(); yPos = 20; }
           doc.setFontSize(11);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text(edu.degree || 'Degree', 14, yPos);
           yPos += 6;
-
           doc.setFontSize(10);
           doc.setFont(undefined, 'normal');
-          doc.text(`${edu.field || 'Field'} | ${edu.institution || 'Institution'}`, 14, yPos);
+          doc.text(`${edu.field || edu.institute || ''} | ${edu.institution || edu.institute || ''}`, 14, yPos);
           yPos += 5;
-          doc.text(`${edu.year || 'Year'} | Grade: ${edu.grade || 'N/A'}`, 14, yPos);
+          doc.text(`${edu.year || ''} | Grade: ${edu.grade || edu.percentage || 'N/A'}`, 14, yPos);
           yPos += 10;
         });
         yPos += 5;
       }
 
       // Experience Section
-      if (experience && experience.length > 0) {
-        if (yPos > 230) {
-          doc.addPage();
-          yPos = 20;
-        }
-
+      if (pdfExperience && pdfExperience.length > 0) {
+        if (yPos > 230) { doc.addPage(); yPos = 20; }
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
-        
         doc.setTextColor(67, 56, 202);
         doc.setFontSize(14);
         doc.text('WORK EXPERIENCE', 14, yPos + 6);
         yPos += 15;
 
-        experience.forEach((exp) => {
-          if (yPos > 240) {
-            doc.addPage();
-            yPos = 20;
-          }
-
+        pdfExperience.forEach((exp) => {
+          if (yPos > 240) { doc.addPage(); yPos = 20; }
           doc.setFontSize(11);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          doc.text(exp.title || 'Job Title', 14, yPos);
+          doc.text(exp.title || exp.role || 'Job Title', 14, yPos);
           yPos += 6;
-
           doc.setFontSize(10);
           doc.setFont(undefined, 'normal');
-          doc.text(`${exp.company || 'Company'} | ${exp.duration || 'Duration'}`, 14, yPos);
+          doc.text(`${exp.company || ''} | ${exp.duration || ''}`, 14, yPos);
           yPos += 5;
-          
           if (exp.description) {
             const descLines = doc.splitTextToSize(exp.description, pageWidth - 28);
             doc.text(descLines, 14, yPos);
@@ -644,35 +608,19 @@ const Profile = () => {
       }
 
       // Social Links Section
-      if (formData.linkedin || formData.github || formData.portfolio) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-
+      if (pd.linkedin || pd.github || pd.portfolio) {
+        if (yPos > 250) { doc.addPage(); yPos = 20; }
         doc.setFillColor(238, 242, 255);
         doc.rect(10, yPos, pageWidth - 20, 8, 'F');
-        
         doc.setTextColor(67, 56, 202);
         doc.setFontSize(14);
         doc.text('SOCIAL LINKS', 14, yPos + 6);
         yPos += 15;
-
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-
-        if (formData.linkedin) {
-          doc.text(`LinkedIn: ${formData.linkedin}`, 14, yPos);
-          yPos += 6;
-        }
-        if (formData.github) {
-          doc.text(`GitHub: ${formData.github}`, 14, yPos);
-          yPos += 6;
-        }
-        if (formData.portfolio) {
-          doc.text(`Portfolio: ${formData.portfolio}`, 14, yPos);
-          yPos += 6;
-        }
+        if (pd.linkedin) { doc.text(`LinkedIn: ${pd.linkedin}`, 14, yPos); yPos += 6; }
+        if (pd.github) { doc.text(`GitHub: ${pd.github}`, 14, yPos); yPos += 6; }
+        if (pd.portfolio) { doc.text(`Portfolio: ${pd.portfolio}`, 14, yPos); yPos += 6; }
       }
 
       // Professional Footer on all pages
@@ -681,7 +629,6 @@ const Profile = () => {
         doc.setPage(i);
         doc.setFillColor(67, 56, 202);
         doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
-        
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
@@ -692,7 +639,7 @@ const Profile = () => {
       }
 
       // Save PDF with proper filename
-      const cleanName = (formData.name || 'Profile').replace(/\s+/g, '_');
+      const cleanName = (pd.name || 'Profile').replace(/\s+/g, '_');
       const fileName = `${cleanName}.pdf`;
       doc.save(fileName);
       toast.success('Profile downloaded successfully!');
