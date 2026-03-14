@@ -1,69 +1,52 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../../redux/slices/authSlice';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const GoogleCallback = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const code = searchParams.get('code');
-      const error = searchParams.get('error');
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (!code) {
+      setError('No authorization code received from Google.');
+      return;
+    }
 
-      if (error) {
-        toast.error('❌ Google authentication cancelled');
-        navigate('/login');
-        return;
-      }
-
-      if (code) {
-        try {
-          toast.info('🔄 Processing Google authentication...');
-          
-          // Send code to backend
-          const response = await axios.post(`${API_URL}/auth/google/callback`, {
-            code,
-            redirectUri: window.location.origin + '/auth/google/callback'
-          });
-
-          if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            
-            toast.success('✅ Google login successful!');
-            
-            const dashboardRoute = response.data.user.role === 'jobseeker' 
-              ? '/jobseeker/dashboard' 
-              : response.data.user.role === 'employer' 
-              ? '/employer/dashboard' 
-              : '/admin/dashboard';
-            
-            navigate(dashboardRoute);
-          }
-        } catch (error) {
-          console.error('Google callback error:', error);
-          toast.error('❌ Google authentication failed. Please try again.');
-          navigate('/login');
+    axios.post(`${API_URL}/auth/google/callback`, { code })
+      .then(res => {
+        if (res.data.status === 'success') {
+          localStorage.setItem('token', res.data.token);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+          dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+          const route = res.data.user.role === 'employer' ? '/employer/dashboard'
+            : res.data.user.role === 'admin' ? '/admin/dashboard'
+            : '/jobseeker/dashboard';
+          navigate(route);
         }
-      } else {
-        toast.error('❌ No authorization code received');
-        navigate('/login');
-      }
-    };
+      })
+      .catch(() => setError('Google login failed. Please try again.'));
+  }, [navigate, dispatch]);
 
-    handleCallback();
-  }, [searchParams, navigate]);
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md">
+        <p className="text-red-600 font-semibold mb-4">{error}</p>
+        <button onClick={() => navigate('/login')} className="bg-indigo-600 text-white px-6 py-2 rounded-xl">Back to Login</button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-      <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 border-2 border-white/20 text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-6"></div>
-        <h2 className="text-2xl font-bold text-white mb-2">Processing Google Login...</h2>
-        <p className="text-indigo-200">Please wait while we authenticate your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 font-semibold text-lg">Signing you in with Google...</p>
       </div>
     </div>
   );
