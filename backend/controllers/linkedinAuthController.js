@@ -32,21 +32,12 @@ exports.linkedinCallback = async (req, res) => {
 
     const { access_token } = tokenRes.data;
 
-    // Get user profile
-    const profileRes = await axios.get('https://api.linkedin.com/v2/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))', {
+    // OpenID Connect - get user info from userinfo endpoint
+    const userInfoRes = await axios.get('https://api.linkedin.com/v2/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
 
-    // Get email
-    const emailRes = await axios.get('https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))', {
-      headers: { Authorization: `Bearer ${access_token}` }
-    });
-
-    const profile = profileRes.data;
-    const name = `${profile.localizedFirstName} ${profile.localizedLastName}`;
-    const email = emailRes.data.elements?.[0]?.['handle~']?.emailAddress;
-    const linkedinId = profile.id;
-    const picture = profile.profilePicture?.['displayImage~']?.elements?.slice(-1)?.[0]?.identifiers?.[0]?.identifier || '';
+    const { sub: linkedinId, name, email, picture } = userInfoRes.data;
 
     if (!email) return res.status(400).json({ status: 'error', message: 'Could not get email from LinkedIn' });
 

@@ -50,7 +50,8 @@ const Login = () => {
       return toast.error('LinkedIn OAuth not configured. Please add REACT_APP_LINKEDIN_CLIENT_ID in environment variables.');
     }
     const redirectUri = encodeURIComponent(window.location.origin + '/auth/linkedin/callback');
-    const scope = encodeURIComponent('r_liteprofile r_emailaddress');
+    // OpenID Connect scope for new LinkedIn API
+    const scope = encodeURIComponent('openid profile email');
     const state = Math.random().toString(36).substring(7);
     window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
   };
