@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { 
   FaBriefcase, FaFileAlt, FaBookmark, FaUser, FaChartLine, 
   FaClock, FaCheckCircle, FaEye, FaSearch,
-  FaRocket, FaFire
+  FaRocket, FaFire, FaTrophy
 } from 'react-icons/fa';
 import dashboardService from '../../redux/services/dashboardService';
 import Loader from '../../components/common/Loader';
@@ -232,21 +232,6 @@ const Dashboard = () => {
                   Saved Jobs
                 </Link>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Dashboard;
-              <p className="text-sm text-gray-600 mb-3">Digital Agency • Pune</p>
-              <div className="flex gap-2 mb-3">
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">Vue.js</span>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">CSS</span>
-              </div>
-              <p className="text-sm font-bold text-green-600">₹6-10 LPA</p>
             </div>
           </div>
         </div>
