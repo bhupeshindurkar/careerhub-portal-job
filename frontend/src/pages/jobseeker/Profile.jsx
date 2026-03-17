@@ -687,15 +687,15 @@ const Profile = () => {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Picture Upload */}
             <div className="relative group flex-shrink-0">
-              <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-2xl ring-4 ring-white/30">
+              <div style={{width:'112px', height:'112px', borderRadius:'50%', overflow:'hidden', border:'4px solid white', boxShadow:'0 0 0 4px rgba(255,255,255,0.3)', flexShrink:0}}>
                 <img 
                   src={profilePicture} 
                   alt="Profile" 
-                  className="w-full h-full object-cover object-center"
+                  style={{width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', display:'block'}}
                 />
               </div>
-              <label className="absolute bottom-1 right-1 bg-white text-indigo-600 p-2 rounded-full cursor-pointer shadow-lg hover:bg-indigo-50 transition transform hover:scale-110">
-                <FaCamera className="text-sm" />
+              <label style={{position:'absolute', bottom:'4px', right:'4px', background:'white', color:'#4f46e5', padding:'6px', borderRadius:'50%', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                <FaCamera style={{fontSize:'12px'}} />
                 <input 
                   type="file" 
                   accept="image/*" 
