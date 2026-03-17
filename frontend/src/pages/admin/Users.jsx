@@ -101,30 +101,16 @@ const Users = () => {
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 20;
 
-    // Load profile image via canvas (works with Cloudinary CORS)
+    // Load profile image via backend proxy (reliable, no CORS issues)
     let profileImgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
       try {
-        profileImgData = await new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          // Add Cloudinary transformation for smaller size
-          let imgUrl = user.profilePicture;
-          if (imgUrl.includes('cloudinary.com')) {
-            imgUrl = imgUrl.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg/');
-          }
-          img.onload = () => {
-            try {
-              const canvas = document.createElement('canvas');
-              canvas.width = 150; canvas.height = 150;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, 150, 150);
-              resolve(canvas.toDataURL('image/jpeg', 0.8));
-            } catch { resolve(null); }
-          };
-          img.onerror = () => resolve(null);
-          img.src = imgUrl;
-        });
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(user.profilePicture)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.base64) profileImgData = data.base64;
+        }
       } catch { profileImgData = null; }
     }
 
