@@ -136,9 +136,18 @@ const Profile = () => {
             currentRole: freshUser.currentRole || prev.currentRole,
           }));
           // Update skills, education, experience if available
-          if (freshUser.skills?.length > 0) setSkills(freshUser.skills);
-          if (freshUser.education?.length > 0) setEducation(freshUser.education);
-          if (freshUser.experience?.length > 0) setExperience(freshUser.experience);
+          if (freshUser.skills?.length > 0) {
+            setSkills(freshUser.skills);
+            localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(freshUser.skills));
+          }
+          if (freshUser.education?.length > 0) {
+            setEducation(freshUser.education);
+            localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(freshUser.education));
+          }
+          if (freshUser.experience?.length > 0) {
+            setExperience(freshUser.experience);
+            localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(freshUser.experience));
+          }
           // Update resume name if available
           if (freshUser.resume && freshUser.resume.startsWith('http')) {
             setResumeName(freshUser.resume);
@@ -195,6 +204,24 @@ const Profile = () => {
       localStorage.setItem(`profileFormData_${user.email}`, JSON.stringify(formData));
     }
   }, [formData, user?.email]);
+
+  useEffect(() => {
+    if (user?.email) {
+      localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(education));
+    }
+  }, [education, user?.email]);
+
+  useEffect(() => {
+    if (user?.email) {
+      localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(experience));
+    }
+  }, [experience, user?.email]);
+
+  useEffect(() => {
+    if (user?.email) {
+      localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(skills));
+    }
+  }, [skills, user?.email]);
   
   // Don't render if no user (AFTER all hooks)
   if (!user) {
@@ -226,9 +253,8 @@ const Profile = () => {
         github: formData.github,
         portfolio: formData.portfolio,
         currentRole: formData.currentRole,
-        experience: formData.experience,
         profilePicture: profilePicture,
-        resume: resumeFile || resumeName || null, // Send base64 file data or filename
+        resume: resumeFile || resumeName || null,
         skills: skills,
         education: education,
         experience: experience
