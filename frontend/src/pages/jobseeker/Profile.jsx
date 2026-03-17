@@ -686,16 +686,16 @@ const Profile = () => {
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 mb-8 text-white">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Picture Upload */}
-            <div className="relative group">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+            <div className="relative group flex-shrink-0">
+              <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-2xl ring-4 ring-white/30">
                 <img 
                   src={profilePicture} 
                   alt="Profile" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
               </div>
-              <label className="absolute bottom-0 right-0 bg-white text-indigo-600 p-3 rounded-full cursor-pointer shadow-lg hover:bg-indigo-50 transition transform hover:scale-110">
-                <FaCamera className="text-xl" />
+              <label className="absolute bottom-1 right-1 bg-white text-indigo-600 p-2 rounded-full cursor-pointer shadow-lg hover:bg-indigo-50 transition transform hover:scale-110">
+                <FaCamera className="text-sm" />
                 <input 
                   type="file" 
                   accept="image/*" 
