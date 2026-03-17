@@ -9,6 +9,24 @@ import adminService from '../../redux/services/adminService';
 import Alert from '../../components/common/Alert';
 import Loader from '../../components/common/Loader';
 
+// Avatar component - shows image or initial letter
+const UserAvatar = ({ user, size = 'sm' }) => {
+  const [imgError, setImgError] = useState(false);
+  const hasImg = user.profilePicture && !imgError &&
+    !user.profilePicture.includes('placeholder') &&
+    !user.profilePicture.includes('ui-avatars');
+  const dim = size === 'lg' ? 'w-14 h-14 text-2xl' : 'w-10 h-10 text-base';
+  return (
+    <div className={`${dim} rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden`}>
+      {hasImg ? (
+        <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+      ) : (
+        <span>{user.name?.charAt(0).toUpperCase()}</span>
+      )}
+    </div>
+  );
+};
+
 const Users = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [users, setUsers] = useState([]);
@@ -309,19 +327,7 @@ const Users = () => {
                     {/* User */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
-                          {user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars') ? (
-                            <img
-                              src={user.profilePicture}
-                              alt={user.name}
-                              className="w-full h-full object-cover"
-                              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                            />
-                          ) : null}
-                          <span style={{ display: (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) ? 'none' : 'flex' }} className="w-full h-full items-center justify-center">
-                            {user.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
+                        <UserAvatar user={user} size="sm" />
                         <div>
                           <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
                           {user.currentRole && <p className="text-xs text-gray-500">{user.currentRole}</p>}
@@ -445,19 +451,7 @@ const Users = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
-                  {viewUser.profilePicture && !viewUser.profilePicture.includes('placeholder') && !viewUser.profilePicture.includes('ui-avatars') ? (
-                    <img
-                      src={viewUser.profilePicture}
-                      alt={viewUser.name}
-                      className="w-full h-full object-cover"
-                      onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                    />
-                  ) : null}
-                  <span style={{ display: (viewUser.profilePicture && !viewUser.profilePicture.includes('placeholder') && !viewUser.profilePicture.includes('ui-avatars')) ? 'none' : 'flex' }} className="w-full h-full items-center justify-center">
-                    {viewUser.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                <UserAvatar user={viewUser} size="lg" />
                 <div>
                   <h2 className="text-xl font-bold text-white">{viewUser.name}</h2>
                   <p className="text-indigo-200 text-sm">{viewUser.email}</p>
