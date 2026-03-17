@@ -104,12 +104,20 @@ const Dashboard = () => {
             <p className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
               {dashboardData?.profileCompletion?.percentage || 0}%
             </p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500" 
                 style={{width: `${dashboardData?.profileCompletion?.percentage || 0}%`}}
               ></div>
             </div>
+            {dashboardData?.profileCompletion?.missing?.length > 0 && (
+              <p className="text-xs text-red-500 font-medium">
+                Missing: {dashboardData.profileCompletion.missing.join(', ')}
+              </p>
+            )}
+            {dashboardData?.profileCompletion?.percentage === 100 && (
+              <p className="text-xs text-green-600 font-semibold">Profile Complete!</p>
+            )}
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition border border-purple-100 transform hover:-translate-y-1">
