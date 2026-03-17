@@ -141,12 +141,15 @@ const Profile = () => {
             localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(freshUser.skills));
           }
           if (freshUser.education?.length > 0) {
-            setEducation(freshUser.education);
-            localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(freshUser.education));
+            // Add local id for UI tracking
+            const eduWithId = freshUser.education.map(e => ({ ...e, id: e._id || Date.now() + Math.random() }));
+            setEducation(eduWithId);
+            localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(eduWithId));
           }
           if (freshUser.experience?.length > 0) {
-            setExperience(freshUser.experience);
-            localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(freshUser.experience));
+            const expWithId = freshUser.experience.map(e => ({ ...e, id: e._id || Date.now() + Math.random() }));
+            setExperience(expWithId);
+            localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(expWithId));
           }
           // Update resume name if available
           if (freshUser.resume && freshUser.resume.startsWith('http')) {

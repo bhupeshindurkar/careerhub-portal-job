@@ -46,13 +46,17 @@ const userSchema = new mongoose.Schema({
   resume: String,
   education: [{
     degree: String,
+    field: String,
     institute: String,
+    institution: String,
     year: String,
-    percentage: String
+    percentage: String,
+    grade: String
   }],
   experience: [{
     company: String,
     role: String,
+    title: String,
     duration: String,
     description: String
   }],
