@@ -77,21 +77,46 @@ const Users = () => {
     }
   };
 
-  const handleDownloadPDF = (user) => {
+  const handleDownloadPDF = async (user) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 20;
 
+    // Try to load profile image
+    let profileImgData = null;
+    if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
+      try {
+        const token = localStorage.getItem('token');
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(user.profilePicture)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.base64) profileImgData = data.base64;
+      } catch (e) { /* skip image if fails */ }
+    }
+
     // Header
     doc.setFillColor(67, 56, 202);
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    doc.rect(0, 0, pageWidth, profileImgData ? 60 : 50, 'F');
+
+    // Profile image in header
+    if (profileImgData) {
+      try {
+        doc.addImage(profileImgData, 'JPEG', 10, 8, 42, 42);
+      } catch (e) { /* skip */ }
+    }
+
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.text('USER PROFILE', pageWidth / 2, 22, { align: 'center' });
-    doc.setFontSize(11);
-    doc.text('CareerHub Pro - Admin Export', pageWidth / 2, 36, { align: 'center' });
-    y = 62;
+    doc.setFontSize(22);
+    const textX = profileImgData ? 60 : pageWidth / 2;
+    const textAlign = profileImgData ? 'left' : 'center';
+    doc.text(user.name || 'USER PROFILE', textX, profileImgData ? 24 : 22, { align: textAlign });
+    doc.setFontSize(10);
+    doc.text(user.email || '', textX, profileImgData ? 34 : 32, { align: textAlign });
+    doc.text('CareerHub Pro - Admin Export', textX, profileImgData ? 44 : 42, { align: textAlign });
+    y = profileImgData ? 72 : 62;
 
     const section = (title) => {
       if (y > 260) { doc.addPage(); y = 20; }
@@ -286,10 +311,16 @@ const Users = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
                           {user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars') ? (
-                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span>{user.name?.charAt(0).toUpperCase()}</span>
-                          )}
+                            <img
+                              src={user.profilePicture}
+                              alt={user.name}
+                              className="w-full h-full object-cover"
+                              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                            />
+                          ) : null}
+                          <span style={{ display: (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) ? 'none' : 'flex' }} className="w-full h-full items-center justify-center">
+                            {user.name?.charAt(0).toUpperCase()}
+                          </span>
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
@@ -416,10 +447,16 @@ const Users = () => {
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
                   {viewUser.profilePicture && !viewUser.profilePicture.includes('placeholder') && !viewUser.profilePicture.includes('ui-avatars') ? (
-                    <img src={viewUser.profilePicture} alt={viewUser.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{viewUser.name?.charAt(0).toUpperCase()}</span>
-                  )}
+                    <img
+                      src={viewUser.profilePicture}
+                      alt={viewUser.name}
+                      className="w-full h-full object-cover"
+                      onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                  ) : null}
+                  <span style={{ display: (viewUser.profilePicture && !viewUser.profilePicture.includes('placeholder') && !viewUser.profilePicture.includes('ui-avatars')) ? 'none' : 'flex' }} className="w-full h-full items-center justify-center">
+                    {viewUser.name?.charAt(0).toUpperCase()}
+                  </span>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{viewUser.name}</h2>
