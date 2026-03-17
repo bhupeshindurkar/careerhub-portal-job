@@ -101,18 +101,31 @@ const Users = () => {
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 20;
 
-    // Try to load profile image
+    // Load profile image via canvas (works with Cloudinary CORS)
     let profileImgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
       try {
-        const token = localStorage.getItem('token');
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(user.profilePicture)}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        profileImgData = await new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          // Add Cloudinary transformation for smaller size
+          let imgUrl = user.profilePicture;
+          if (imgUrl.includes('cloudinary.com')) {
+            imgUrl = imgUrl.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg/');
+          }
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = 150; canvas.height = 150;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, 150, 150);
+              resolve(canvas.toDataURL('image/jpeg', 0.8));
+            } catch { resolve(null); }
+          };
+          img.onerror = () => resolve(null);
+          img.src = imgUrl;
         });
-        const data = await res.json();
-        if (data.base64) profileImgData = data.base64;
-      } catch (e) { /* skip image if fails */ }
+      } catch { profileImgData = null; }
     }
 
     // Header
@@ -122,8 +135,8 @@ const Users = () => {
     // Profile image in header
     if (profileImgData) {
       try {
-        doc.addImage(profileImgData, 'JPEG', 10, 8, 42, 42);
-      } catch (e) { /* skip */ }
+        doc.addImage(profileImgData, 'JPEG', 10, 8, 44, 44);
+      } catch (e) { profileImgData = null; }
     }
 
     doc.setTextColor(255, 255, 255);
