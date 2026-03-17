@@ -6,6 +6,22 @@ import Loader from '../../components/common/Loader';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+const UserAvatar = ({ user }) => {
+  const [imgError, setImgError] = useState(false);
+  const hasImg = user.profilePicture && !imgError &&
+    !user.profilePicture.includes('placeholder') &&
+    !user.profilePicture.includes('ui-avatars');
+  return (
+    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden">
+      {hasImg ? (
+        <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+      ) : (
+        <span>{user.name?.charAt(0).toUpperCase()}</span>
+      )}
+    </div>
+  );
+};
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [latestUsers, setLatestUsers] = useState([]);
@@ -130,9 +146,7 @@ const AdminDashboard = () => {
               {latestUsers.slice(0, 5).map((user) => (
                 <div key={user._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
+                    <UserAvatar user={user} />
                     <div>
                       <p className="font-semibold text-gray-900">{user.name}</p>
                       <p className="text-sm text-gray-600">{user.email}</p>

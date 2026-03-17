@@ -29,7 +29,7 @@ exports.getDashboardStats = async (req, res) => {
     
     // Get latest users
     const latestUsers = await User.find()
-      .select('name email role createdAt')
+      .select('name email role createdAt profilePicture')
       .sort({ createdAt: -1 })
       .limit(10);
     
