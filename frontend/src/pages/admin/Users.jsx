@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   FaTrash, FaEdit, FaFilePdf, FaSearch, FaTimes, FaSave,
   FaEnvelope, FaPhone, FaMapMarkerAlt, FaLinkedin, FaGithub,
@@ -21,18 +21,30 @@ const fetchImageBase64 = async (url) => {
 };
 
 const UserAvatar = ({ user, size = 'sm' }) => {
-  const [imgSrc, setImgSrc] = useState(null);
+  const [imgError, setImgError] = useState(false);
 
-  useEffect(() => {
-    if (!user.profilePicture || user.profilePicture.includes('placeholder') || user.profilePicture.includes('ui-avatars')) return;
-    fetchImageBase64(user.profilePicture).then(b64 => { if (b64) setImgSrc(b64); });
-  }, [user.profilePicture]);
+  const hasPhoto = user.profilePicture &&
+    !user.profilePicture.includes('placeholder') &&
+    !user.profilePicture.includes('ui-avatars');
+
+  // Use Cloudinary transformation for smaller size
+  const getImgUrl = (url) => {
+    if (url && url.includes('cloudinary.com') && url.includes('/upload/')) {
+      return url.replace('/upload/', '/upload/w_120,h_120,c_fill,f_auto,q_auto/');
+    }
+    return url;
+  };
 
   const dim = size === 'lg' ? 'w-16 h-16 text-2xl' : 'w-10 h-10 text-sm';
   return (
     <div className={`${dim} rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden ring-2 ring-indigo-500/30`}>
-      {imgSrc ? (
-        <img src={imgSrc} alt={user.name} className="w-full h-full object-cover" />
+      {hasPhoto && !imgError ? (
+        <img
+          src={getImgUrl(user.profilePicture)}
+          alt={user.name}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
       ) : (
         <span>{user.name?.charAt(0).toUpperCase()}</span>
       )}
