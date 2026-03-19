@@ -201,26 +201,40 @@ exports.getSavedJobs = async (req, res) => {
 
 // @desc    Proxy image URL to base64 (for PDF generation)
 // @route   GET /api/users/image-proxy?url=...
-// @access  Private
+// @access  Public
 exports.imageProxy = async (req, res) => {
   try {
     const { url } = req.query;
     if (!url) return res.status(400).json({ message: 'URL required' });
 
+    // Only allow cloudinary or known image hosts
+    const allowedHosts = ['cloudinary.com', 'res.cloudinary.com'];
+    let parsedHost = '';
+    try { parsedHost = new URL(url).hostname; } catch { return res.status(400).json({ message: 'Invalid URL' }); }
+    if (!allowedHosts.some(h => parsedHost.includes(h))) {
+      return res.status(403).json({ message: 'Host not allowed' });
+    }
+
     const https = require('https');
     const http = require('http');
     const client = url.startsWith('https') ? https : http;
 
-    client.get(url, (imgRes) => {
+    const request = client.get(url, (imgRes) => {
+      if (imgRes.statusCode !== 200) {
+        return res.status(502).json({ message: 'Failed to fetch image' });
+      }
       const chunks = [];
       imgRes.on('data', chunk => chunks.push(chunk));
       imgRes.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const base64 = buffer.toString('base64');
         const contentType = imgRes.headers['content-type'] || 'image/jpeg';
+        res.setHeader('Cache-Control', 'public, max-age=3600');
         res.json({ base64: `data:${contentType};base64,${base64}` });
       });
-    }).on('error', () => res.status(500).json({ message: 'Failed to fetch image' }));
+    });
+    request.on('error', () => res.status(500).json({ message: 'Failed to fetch image' }));
+    request.setTimeout(10000, () => { request.destroy(); res.status(504).json({ message: 'Timeout' }); });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

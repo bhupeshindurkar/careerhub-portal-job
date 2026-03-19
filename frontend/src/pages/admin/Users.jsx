@@ -8,32 +8,31 @@ import { jsPDF } from 'jspdf';
 import adminService from '../../redux/services/adminService';
 import Loader from '../../components/common/Loader';
 
-const UserAvatar = ({ user, size = 'sm' }) => {
-  const [imgError, setImgError] = useState(false);
-  const hasImg = user.profilePicture && !imgError &&
-    !user.profilePicture.includes('placeholder') &&
-    !user.profilePicture.includes('ui-avatars');
+const API_BASE = process.env.REACT_APP_API_URL || 'https://careerhub-backend-sxue.onrender.com/api';
 
-  // Add Cloudinary transformation for faster load
-  const getImgUrl = (url) => {
-    if (!url) return url;
-    if (url.includes('cloudinary.com') && url.includes('/upload/')) {
-      return url.replace('/upload/', '/upload/w_100,h_100,c_fill,f_auto,q_auto/');
-    }
-    return url;
-  };
+const fetchImageBase64 = async (url) => {
+  if (!url || url.includes('placeholder') || url.includes('ui-avatars')) return null;
+  try {
+    const res = await fetch(`${API_BASE}/users/image-proxy?url=${encodeURIComponent(url)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.base64 || null;
+  } catch { return null; }
+};
+
+const UserAvatar = ({ user, size = 'sm' }) => {
+  const [imgSrc, setImgSrc] = useState(null);
+
+  useEffect(() => {
+    if (!user.profilePicture || user.profilePicture.includes('placeholder') || user.profilePicture.includes('ui-avatars')) return;
+    fetchImageBase64(user.profilePicture).then(b64 => { if (b64) setImgSrc(b64); });
+  }, [user.profilePicture]);
 
   const dim = size === 'lg' ? 'w-16 h-16 text-2xl' : 'w-10 h-10 text-sm';
   return (
     <div className={`${dim} rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden ring-2 ring-indigo-500/30`}>
-      {hasImg ? (
-        <img
-          src={getImgUrl(user.profilePicture)}
-          alt={user.name}
-          className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
-          referrerPolicy="no-referrer"
-        />
+      {imgSrc ? (
+        <img src={imgSrc} alt={user.name} className="w-full h-full object-cover" />
       ) : (
         <span>{user.name?.charAt(0).toUpperCase()}</span>
       )}
@@ -105,43 +104,10 @@ const Users = () => {
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 0;
 
-    // --- fetch image via canvas (most reliable for Cloudinary) ---
+    // --- fetch image via backend proxy (avoids CORS issues with Cloudinary) ---
     let imgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
-      try {
-        imgData = await new Promise((resolve) => {
-          const img = new window.Image();
-          img.crossOrigin = 'anonymous';
-          let src = user.profilePicture;
-          if (src.includes('cloudinary.com') && src.includes('/upload/')) {
-            src = src.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg,q_80/');
-          }
-          img.onload = () => {
-            try {
-              const canvas = document.createElement('canvas');
-              canvas.width = 150; canvas.height = 150;
-              canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
-              resolve(canvas.toDataURL('image/jpeg', 0.85));
-            } catch { resolve(null); }
-          };
-          img.onerror = () => {
-            // fallback: try without transformation
-            const img2 = new window.Image();
-            img2.crossOrigin = 'anonymous';
-            img2.onload = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 150; canvas.height = 150;
-                canvas.getContext('2d').drawImage(img2, 0, 0, 150, 150);
-                resolve(canvas.toDataURL('image/jpeg', 0.85));
-              } catch { resolve(null); }
-            };
-            img2.onerror = () => resolve(null);
-            img2.src = user.profilePicture + '?t=' + Date.now();
-          };
-          img.src = src;
-        });
-      } catch { imgData = null; }
+      imgData = await fetchImageBase64(user.profilePicture);
     }
 
     // --- HEADER ---
