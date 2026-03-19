@@ -105,18 +105,42 @@ const Users = () => {
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 0;
 
-    // --- fetch image ---
+    // --- fetch image via canvas (most reliable for Cloudinary) ---
     let imgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
       try {
-        // Use Cloudinary transformation for smaller/faster image
-        let imgUrl = user.profilePicture;
-        if (imgUrl.includes('cloudinary.com') && imgUrl.includes('/upload/')) {
-          imgUrl = imgUrl.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg,q_80/');
-        }
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(imgUrl)}`);
-        if (res.ok) { const d = await res.json(); if (d.base64) imgData = d.base64; }
+        imgData = await new Promise((resolve) => {
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          let src = user.profilePicture;
+          if (src.includes('cloudinary.com') && src.includes('/upload/')) {
+            src = src.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg,q_80/');
+          }
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = 150; canvas.height = 150;
+              canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
+              resolve(canvas.toDataURL('image/jpeg', 0.85));
+            } catch { resolve(null); }
+          };
+          img.onerror = () => {
+            // fallback: try without transformation
+            const img2 = new window.Image();
+            img2.crossOrigin = 'anonymous';
+            img2.onload = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 150; canvas.height = 150;
+                canvas.getContext('2d').drawImage(img2, 0, 0, 150, 150);
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+              } catch { resolve(null); }
+            };
+            img2.onerror = () => resolve(null);
+            img2.src = user.profilePicture + '?t=' + Date.now();
+          };
+          img.src = src;
+        });
       } catch { imgData = null; }
     }
 
