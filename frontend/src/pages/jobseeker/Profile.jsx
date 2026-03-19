@@ -39,26 +39,9 @@ const Profile = () => {
 
   const [formData, setFormData] = useState(() => {
     if (!user?.email) {
-      return {
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        bio: '',
-        linkedin: '',
-        github: '',
-        portfolio: '',
-        currentRole: '',
-        experience: '',
-      };
+      return { name: '', email: '', phone: '', location: '', bio: '', linkedin: '', github: '', portfolio: '', currentRole: '', experience: '' };
     }
-    
-    // First check localStorage for saved profile data (user-specific)
-    const savedData = localStorage.getItem(`profileFormData_${user.email}`);
-    if (savedData) {
-      return JSON.parse(savedData);
-    }
-    // Otherwise use user registration data
+    // Always use Redux user data as initial - backend will override via fetchFreshProfile
     return {
       name: user?.name || '',
       email: user?.email || '',
@@ -73,31 +56,11 @@ const Profile = () => {
     };
   });
 
-  const [education, setEducation] = useState(() => {
-    if (!user?.email) return [];
-    const savedEducation = localStorage.getItem(`profileEducation_${user.email}`);
-    if (savedEducation) {
-      return JSON.parse(savedEducation);
-    }
-    return [];
-  });
-
-  const [experience, setExperience] = useState(() => {
-    if (!user?.email) return [];
-    const savedExperience = localStorage.getItem(`profileExperience_${user.email}`);
-    if (savedExperience) {
-      return JSON.parse(savedExperience);
-    }
-    return [];
-  });
-
+  const [education, setEducation] = useState([]);
+  const [experience, setExperience] = useState([]);
   const [skills, setSkills] = useState(() => {
-    if (!user?.email) return [];
-    const savedSkills = localStorage.getItem(`profileSkills_${user.email}`);
-    if (savedSkills) {
-      return JSON.parse(savedSkills);
-    }
-    return [];
+    // Skills can come from Redux user object initially
+    return user?.skills || [];
   });
   
   const [newSkill, setNewSkill] = useState('');
@@ -115,66 +78,38 @@ const Profile = () => {
     }
   }, [user?.email]);
 
-  // Fetch fresh profile from backend on mount to get latest data (bio, linkedin, etc.)
+  // Fetch fresh profile from backend on mount - ALWAYS use backend as source of truth
   useEffect(() => {
     const fetchFreshProfile = async () => {
       if (!user?.email) return;
       try {
         const response = await userService.getProfile();
         if (response.status === 'success' && response.user) {
-          const freshUser = response.user;
-          // Update formData with fresh backend data
-          setFormData(prev => ({
-            ...prev,
-            name: freshUser.name || prev.name,
-            phone: freshUser.phone || prev.phone,
-            location: freshUser.location || prev.location,
-            bio: freshUser.bio || prev.bio,
-            linkedin: freshUser.linkedin || prev.linkedin,
-            github: freshUser.github || prev.github,
-            portfolio: freshUser.portfolio || prev.portfolio,
-            currentRole: freshUser.currentRole || prev.currentRole,
-          }));
-          // Update skills, education, experience if available
-          if (freshUser.skills?.length > 0) {
-            setSkills(freshUser.skills);
-            localStorage.setItem(`profileSkills_${user.email}`, JSON.stringify(freshUser.skills));
+          const f = response.user;
+          // Always override with backend data
+          setFormData({
+            name: f.name || '',
+            email: f.email || '',
+            phone: f.phone || '',
+            location: f.location || '',
+            bio: f.bio || '',
+            linkedin: f.linkedin || '',
+            github: f.github || '',
+            portfolio: f.portfolio || '',
+            currentRole: f.currentRole || '',
+            experience: f.experience || '',
+          });
+          // Always set skills/education/experience from backend
+          setSkills(f.skills || []);
+          setEducation((f.education || []).map(e => ({ ...e, id: e._id || String(Date.now() + Math.random()) })));
+          setExperience((f.experience || []).map(e => ({ ...e, id: e._id || String(Date.now() + Math.random()) })));
+          if (f.resume && f.resume.startsWith('http')) setResumeName(f.resume);
+          if (f.profilePicture && f.profilePicture.startsWith('http') && !f.profilePicture.includes('placeholder')) {
+            setProfilePicture(f.profilePicture);
           }
-          if (freshUser.education?.length > 0) {
-            // Add local id for UI tracking
-            const eduWithId = freshUser.education.map(e => ({ ...e, id: e._id || Date.now() + Math.random() }));
-            setEducation(eduWithId);
-            localStorage.setItem(`profileEducation_${user.email}`, JSON.stringify(eduWithId));
-          }
-          if (freshUser.experience?.length > 0) {
-            const expWithId = freshUser.experience.map(e => ({ ...e, id: e._id || Date.now() + Math.random() }));
-            setExperience(expWithId);
-            localStorage.setItem(`profileExperience_${user.email}`, JSON.stringify(expWithId));
-          }
-          // Update resume name if available
-          if (freshUser.resume && freshUser.resume.startsWith('http')) {
-            setResumeName(freshUser.resume);
-          }
-          // Update profile picture if available
-          if (freshUser.profilePicture && freshUser.profilePicture.startsWith('http') && !freshUser.profilePicture.includes('placeholder')) {
-            setProfilePicture(freshUser.profilePicture);
-          }
-          // Sync localStorage with fresh data
-          localStorage.setItem(`profileFormData_${user.email}`, JSON.stringify({
-            name: freshUser.name || '',
-            email: freshUser.email || '',
-            phone: freshUser.phone || '',
-            location: freshUser.location || '',
-            bio: freshUser.bio || '',
-            linkedin: freshUser.linkedin || '',
-            github: freshUser.github || '',
-            portfolio: freshUser.portfolio || '',
-            currentRole: freshUser.currentRole || '',
-            experience: freshUser.experience || '',
-          }));
         }
       } catch (error) {
-        // Silently fail - use cached data
+        // silently fail
       }
     };
     fetchFreshProfile();
