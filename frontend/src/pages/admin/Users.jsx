@@ -85,41 +85,184 @@ const Users = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    let y = 20;
-    let profileImgData = null;
+    let y = 0;
+
+    // --- fetch image ---
+    let imgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
       try {
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
         const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(user.profilePicture)}`);
-        if (res.ok) { const d = await res.json(); if (d.base64) profileImgData = d.base64; }
-      } catch { profileImgData = null; }
+        if (res.ok) { const d = await res.json(); if (d.base64) imgData = d.base64; }
+      } catch { imgData = null; }
     }
-    doc.setFillColor(67, 56, 202);
-    doc.rect(0, 0, pageWidth, profileImgData ? 60 : 50, 'F');
-    if (profileImgData) { try { doc.addImage(profileImgData, 'JPEG', 10, 8, 44, 44); } catch { profileImgData = null; } }
+
+    // --- HEADER ---
+    doc.setFillColor(49, 46, 129); // deep indigo
+    doc.rect(0, 0, pageWidth, 58, 'F');
+
+    // profile image circle area
+    if (imgData) {
+      try { doc.addImage(imgData, 'JPEG', 8, 6, 46, 46); } catch { imgData = null; }
+    }
+
+    // name + meta
+    const hx = imgData ? 60 : 14;
     doc.setTextColor(255, 255, 255);
-    const tx = profileImgData ? 60 : pageWidth / 2;
-    const ta = profileImgData ? 'left' : 'center';
-    doc.setFontSize(22); doc.text(user.name || 'USER PROFILE', tx, profileImgData ? 24 : 22, { align: ta });
-    doc.setFontSize(10); doc.text(user.email || '', tx, profileImgData ? 34 : 32, { align: ta });
-    doc.text('CareerHub Pro - Admin Export', tx, profileImgData ? 44 : 42, { align: ta });
-    y = profileImgData ? 72 : 62;
-    const section = (t) => { if (y > 260) { doc.addPage(); y = 20; } doc.setFillColor(238, 242, 255); doc.rect(10, y, pageWidth - 20, 8, 'F'); doc.setTextColor(67, 56, 202); doc.setFontSize(13); doc.text(t, 14, y + 6); y += 14; };
-    const field = (l, v) => { if (!v) return; if (y > 270) { doc.addPage(); y = 20; } doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.setFont(undefined, 'bold'); doc.text(`${l}:`, 14, y); doc.setFont(undefined, 'normal'); const lines = doc.splitTextToSize(String(v), pageWidth - 65); doc.text(lines, 55, y); y += lines.length * 6 + 2; };
-    section('PERSONAL INFORMATION');
-    field('Name', user.name); field('Email', user.email); field('Phone', user.phone);
-    field('Location', user.location); field('Role', user.role); field('Current Role', user.currentRole);
-    field('Joined', user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN') : '');
-    y += 5;
-    if (user.bio) { section('PROFESSIONAL BIO'); doc.setFontSize(10); doc.setTextColor(0,0,0); doc.setFont(undefined,'normal'); const bl = doc.splitTextToSize(user.bio, pageWidth-28); doc.text(bl,14,y); y += bl.length*5+10; }
-    if (user.skills?.length > 0) { section('SKILLS'); doc.setFontSize(10); doc.setTextColor(0,0,0); doc.setFont(undefined,'normal'); const sl = doc.splitTextToSize(user.skills.join(' • '), pageWidth-28); doc.text(sl,14,y); y += sl.length*5+10; }
-    if (user.education?.length > 0) { section('EDUCATION'); user.education.forEach(e => { if(y>260){doc.addPage();y=20;} doc.setFontSize(10);doc.setTextColor(0,0,0);doc.setFont(undefined,'bold');doc.text(e.degree||'Degree',14,y);y+=5;doc.setFont(undefined,'normal');doc.text(`${e.institute||e.institution||''} | ${e.year||''}`,14,y);y+=8; }); }
-    if (user.experience?.length > 0) { section('WORK EXPERIENCE'); user.experience.forEach(e => { if(y>260){doc.addPage();y=20;} doc.setFontSize(10);doc.setTextColor(0,0,0);doc.setFont(undefined,'bold');doc.text(e.role||e.title||'Role',14,y);y+=5;doc.setFont(undefined,'normal');doc.text(`${e.company||''} | ${e.duration||''}`,14,y);y+=8; }); }
-    if (user.linkedin||user.github||user.portfolio) { section('SOCIAL LINKS'); field('LinkedIn',user.linkedin); field('GitHub',user.github); field('Portfolio',user.portfolio); }
-    if (user.companyName) { section('COMPANY INFO'); field('Company',user.companyName); field('Industry',user.industry); }
-    const pages = doc.internal.getNumberOfPages();
-    for (let i=1;i<=pages;i++) { doc.setPage(i); doc.setFillColor(67,56,202); doc.rect(0,pageHeight-18,pageWidth,18,'F'); doc.setTextColor(255,255,255); doc.setFontSize(8); doc.text('CareerHub Pro | Admin Export | Developed by BHUPESH INDURKAR', pageWidth/2, pageHeight-7, {align:'center'}); }
-    doc.save(`${(user.name||'User').replace(/\s+/g,'_')}.pdf`);
+    doc.setFontSize(20); doc.setFont(undefined, 'bold');
+    doc.text(user.name || '', hx, 20);
+    doc.setFontSize(10); doc.setFont(undefined, 'normal');
+    if (user.currentRole) doc.text(user.currentRole, hx, 30);
+    doc.text(user.email || '', hx, 38);
+    if (user.phone) doc.text(user.phone, hx, 46);
+    doc.setFontSize(8);
+    doc.text('CareerHub Pro  |  Admin Export', pageWidth - 10, 54, { align: 'right' });
+
+    y = 68;
+
+    // helpers
+    const checkPage = (needed = 10) => { if (y + needed > pageHeight - 20) { doc.addPage(); y = 16; } };
+
+    const sectionHeader = (title) => {
+      checkPage(14);
+      doc.setFillColor(238, 242, 255);
+      doc.rect(10, y, pageWidth - 20, 9, 'F');
+      doc.setDrawColor(99, 102, 241);
+      doc.rect(10, y, 3, 9, 'F');
+      doc.setTextColor(49, 46, 129);
+      doc.setFontSize(10); doc.setFont(undefined, 'bold');
+      doc.text(title, 16, y + 6.5);
+      y += 13;
+    };
+
+    const row = (label, value) => {
+      if (!value && value !== 0) return;
+      const val = String(value);
+      checkPage(8);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100); doc.setFont(undefined, 'bold');
+      doc.text(label + ':', 14, y);
+      doc.setTextColor(30, 30, 30); doc.setFont(undefined, 'normal');
+      const lines = doc.splitTextToSize(val, pageWidth - 68);
+      doc.text(lines, 58, y);
+      y += lines.length * 5.5 + 1.5;
+    };
+
+    const bodyText = (text) => {
+      if (!text) return;
+      const lines = doc.splitTextToSize(String(text), pageWidth - 28);
+      lines.forEach(line => { checkPage(6); doc.setFontSize(9); doc.setTextColor(40, 40, 40); doc.setFont(undefined, 'normal'); doc.text(line, 14, y); y += 5.5; });
+      y += 3;
+    };
+
+    // --- PERSONAL INFO ---
+    sectionHeader('PERSONAL INFORMATION');
+    row('Name', user.name);
+    row('Email', user.email);
+    row('Phone', user.phone);
+    row('Location', user.location);
+    row('Role', user.role);
+    row('Current Role', user.currentRole);
+    row('Joined', user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN') : '');
+    y += 4;
+
+    // --- BIO ---
+    if (user.bio) {
+      sectionHeader('PROFESSIONAL BIO');
+      bodyText(user.bio);
+    }
+
+    // --- SKILLS ---
+    if (user.skills?.length > 0) {
+      sectionHeader('SKILLS');
+      // draw skill chips
+      let sx = 14;
+      user.skills.forEach(skill => {
+        const sw = doc.getTextWidth(skill) + 8;
+        if (sx + sw > pageWidth - 14) { sx = 14; y += 9; checkPage(9); }
+        doc.setFillColor(224, 231, 255);
+        doc.roundedRect(sx, y - 5, sw, 7, 2, 2, 'F');
+        doc.setTextColor(67, 56, 202); doc.setFontSize(8); doc.setFont(undefined, 'bold');
+        doc.text(skill, sx + 4, y);
+        sx += sw + 4;
+      });
+      y += 10;
+    }
+
+    // --- EDUCATION ---
+    if (user.education?.length > 0) {
+      sectionHeader('EDUCATION');
+      user.education.forEach((e, i) => {
+        checkPage(18);
+        doc.setFontSize(9); doc.setFont(undefined, 'bold'); doc.setTextColor(30, 30, 30);
+        doc.text(e.degree || 'Degree', 14, y); y += 5.5;
+        doc.setFont(undefined, 'normal'); doc.setTextColor(80, 80, 80);
+        const inst = [e.institute || e.institution, e.field, e.year].filter(Boolean).join('  |  ');
+        if (inst) { doc.text(inst, 14, y); y += 5; }
+        if (e.grade || e.percentage) { doc.text(`Grade/Percentage: ${e.grade || e.percentage}`, 14, y); y += 5; }
+        if (i < user.education.length - 1) { doc.setDrawColor(220, 220, 220); doc.line(14, y, pageWidth - 14, y); y += 4; }
+      });
+      y += 4;
+    }
+
+    // --- EXPERIENCE ---
+    if (user.experience?.length > 0) {
+      sectionHeader('WORK EXPERIENCE');
+      user.experience.forEach((e, i) => {
+        checkPage(20);
+        doc.setFontSize(9); doc.setFont(undefined, 'bold'); doc.setTextColor(30, 30, 30);
+        doc.text(e.role || e.title || 'Role', 14, y); y += 5.5;
+        doc.setFont(undefined, 'normal'); doc.setTextColor(80, 80, 80);
+        const comp = [e.company, e.duration].filter(Boolean).join('  |  ');
+        if (comp) { doc.text(comp, 14, y); y += 5; }
+        if (e.description) {
+          const dl = doc.splitTextToSize(e.description, pageWidth - 28);
+          dl.forEach(l => { checkPage(6); doc.text(l, 14, y); y += 5; });
+        }
+        if (i < user.experience.length - 1) { doc.setDrawColor(220, 220, 220); doc.line(14, y, pageWidth - 14, y); y += 4; }
+      });
+      y += 4;
+    }
+
+    // --- SOCIAL LINKS ---
+    if (user.linkedin || user.github || user.portfolio) {
+      sectionHeader('SOCIAL LINKS');
+      row('LinkedIn', user.linkedin);
+      row('GitHub', user.github);
+      row('Portfolio', user.portfolio);
+      y += 4;
+    }
+
+    // --- COMPANY INFO (employer) ---
+    if (user.companyName) {
+      sectionHeader('COMPANY INFORMATION');
+      row('Company', user.companyName);
+      row('Industry', user.industry);
+      row('Company Size', user.companySize);
+      row('Website', user.companyWebsite);
+      if (user.companyDescription) { checkPage(10); bodyText(user.companyDescription); }
+      y += 4;
+    }
+
+    // --- RESUME LINK ---
+    if (user.resume && user.resume.startsWith('http')) {
+      sectionHeader('RESUME');
+      doc.setFontSize(9); doc.setTextColor(67, 56, 202); doc.setFont(undefined, 'normal');
+      doc.text(user.resume, 14, y); y += 8;
+    }
+
+    // --- FOOTER on every page ---
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFillColor(49, 46, 129);
+      doc.rect(0, pageHeight - 14, pageWidth, 14, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFontSize(7); doc.setFont(undefined, 'normal');
+      doc.text('CareerHub Pro  |  Admin Export  |  Developed by BHUPESH INDURKAR', pageWidth / 2, pageHeight - 5, { align: 'center' });
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - 10, pageHeight - 5, { align: 'right' });
+    }
+
+    doc.save(`${(user.name || 'User').replace(/\s+/g, '_')}_Profile.pdf`);
   };
 
   const filteredUsers = users.filter(u => {
