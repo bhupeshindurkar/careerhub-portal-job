@@ -13,12 +13,30 @@ const UserAvatar = ({ user, size = 'sm' }) => {
   const hasImg = user.profilePicture && !imgError &&
     !user.profilePicture.includes('placeholder') &&
     !user.profilePicture.includes('ui-avatars');
+
+  // Add Cloudinary transformation for faster load
+  const getImgUrl = (url) => {
+    if (!url) return url;
+    if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+      return url.replace('/upload/', '/upload/w_100,h_100,c_fill,f_auto,q_auto/');
+    }
+    return url;
+  };
+
   const dim = size === 'lg' ? 'w-16 h-16 text-2xl' : 'w-10 h-10 text-sm';
   return (
     <div className={`${dim} rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden ring-2 ring-indigo-500/30`}>
-      {hasImg
-        ? <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
-        : <span>{user.name?.charAt(0).toUpperCase()}</span>}
+      {hasImg ? (
+        <img
+          src={getImgUrl(user.profilePicture)}
+          alt={user.name}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <span>{user.name?.charAt(0).toUpperCase()}</span>
+      )}
     </div>
   );
 };
@@ -91,8 +109,13 @@ const Users = () => {
     let imgData = null;
     if (user.profilePicture && !user.profilePicture.includes('placeholder') && !user.profilePicture.includes('ui-avatars')) {
       try {
+        // Use Cloudinary transformation for smaller/faster image
+        let imgUrl = user.profilePicture;
+        if (imgUrl.includes('cloudinary.com') && imgUrl.includes('/upload/')) {
+          imgUrl = imgUrl.replace('/upload/', '/upload/w_150,h_150,c_fill,f_jpg,q_80/');
+        }
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(user.profilePicture)}`);
+        const res = await fetch(`${API_URL}/users/image-proxy?url=${encodeURIComponent(imgUrl)}`);
         if (res.ok) { const d = await res.json(); if (d.base64) imgData = d.base64; }
       } catch { imgData = null; }
     }
